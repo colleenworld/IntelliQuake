@@ -1,0 +1,20 @@
+{
+  "name": "@earthquake/infrastructure",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint bin lib test",
+    "synth": "pnpm build && cdk synth --app 'node dist/bin/earthquake-platform.js'",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.215.0",
+    "constructs": "^10.4.2"
+  },
+  "devDependencies": {
+    "aws-cdk": "^2.1029.2",
+    "vitest": "^3.2.4"
+  }
+}

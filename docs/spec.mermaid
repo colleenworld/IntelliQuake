@@ -1,0 +1,17 @@
+flowchart TD
+    USGS["USGS feed/API"] --> Poller["Scheduled ingester"]
+    Kaggle["Historical dataset"] --> Importer["Batch importer"]
+
+    Poller --> Queue["SQS event queue"]
+    Importer --> Queue
+    Queue --> Processor["Normalization worker"]
+
+    Processor --> Raw["S3 raw records"]
+    Processor --> DB["PostgreSQL + PostGIS"]
+    DB --> Cluster["Series classifier"]
+    Cluster --> DB
+
+    DB --> API["Application API"]
+    API --> Web["React dashboard"]
+    API --> Chat["Grounded chatbot"]
+    Chat --> LLM["LLM API"]
