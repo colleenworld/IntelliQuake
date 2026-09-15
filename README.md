@@ -4,9 +4,11 @@ A production-oriented engineering demonstration that ingests mutable scientific 
 preserves provenance, identifies explainable candidate seismic series, visualizes events, and
 answers grounded questions.
 
-This repository currently contains **Increment 0: Foundation**. The release boundaries are
-summarized in `docs/product/version-one.md`; the complete product specification is maintained as a
-companion project document.
+This repository contains **Increment 1: Catalog ingestion**. It includes the foundation plus a
+USGS polling and backfill path, immutable raw storage, queue processing, PostGIS persistence,
+revision history, and deployable AWS infrastructure. Release boundaries are summarized in
+`docs/product/version-one.md`; the complete product specification is maintained as a companion
+project document.
 
 ## Prerequisites
 
@@ -25,6 +27,7 @@ pnpm dev
 ```
 
 - API health: <http://localhost:3000/v1/health>
+- Catalog freshness: <http://localhost:3000/v1/system/freshness>
 - Dashboard: <http://localhost:5173>
 
 ## Quality checks
@@ -39,6 +42,7 @@ pnpm infra:synth
 ```text
 apps/api             NestJS/Fastify application API
 apps/dashboard       React/Vite dashboard
+apps/ingestion       USGS clients, producers, processors, adapters, handlers, and CLIs
 packages/contracts   Boundary schemas and API contracts
 packages/domain      Domain value objects and validation
 packages/observability Structured logging foundation
@@ -46,6 +50,7 @@ infrastructure       AWS CDK application
 database             Local database initialization
 docs/adr              Architecture decision records
 docs/product          Version-one product boundaries
+docs/architecture     Runtime and failure-flow documentation
 ```
 
 ## Current boundaries
@@ -56,13 +61,29 @@ multi-catalog reconciliation, and advanced scientific classification are intenti
 
 ## Useful commands
 
-| Command            | Purpose                                                    |
-| ------------------ | ---------------------------------------------------------- |
-| `pnpm dev`         | Run the API and dashboard in watch mode.                   |
-| `pnpm check`       | Run formatting, linting, type checking, tests, and builds. |
-| `pnpm db:up`       | Start local PostgreSQL/PostGIS.                            |
-| `pnpm db:down`     | Stop local services.                                       |
-| `pnpm infra:synth` | Synthesize the CDK stack.                                  |
+| Command                                                       | Purpose                                                    |
+| ------------------------------------------------------------- | ---------------------------------------------------------- |
+| `pnpm dev`                                                    | Run the API and dashboard in watch mode.                   |
+| `pnpm check`                                                  | Run formatting, linting, type checking, tests, and builds. |
+| `pnpm db:up`                                                  | Start local PostgreSQL/PostGIS.                            |
+| `pnpm db:down`                                                | Stop local services.                                       |
+| `pnpm db:migrate`                                             | Apply pending PostGIS schema migrations.                   |
+| `pnpm ingest:poll`                                            | Fetch and process the configured USGS feed locally.        |
+| `pnpm ingest:backfill -- --start=2026-09-01 --end=2026-09-02` | Run a bounded historical import.                           |
+| `pnpm infra:synth`                                            | Synthesize the CDK stack.                                  |
+
+## Run the ingestion path locally
+
+```bash
+cp .env.example .env
+pnpm db:up
+pnpm db:migrate
+pnpm ingest:poll
+pnpm ingest:backfill -- --start=2026-09-01 --end=2026-09-02 --minimum-magnitude=2.5
+```
+
+Raw objects are written beneath `.local/raw` and normalized revisions are written transactionally
+to PostgreSQL. Re-running the same import is safe and records unchanged processing outcomes.
 
 ## Engineering principles
 

@@ -4,6 +4,8 @@
     "noEmit": false,
     "rootDir": "src",
     "outDir": "dist",
-    "types": ["node"]
+    "declaration": true,
+    "sourceMap": true,
+    "incremental": false
   }
 }

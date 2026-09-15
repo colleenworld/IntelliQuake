@@ -9,17 +9,21 @@
   },
   "scripts": {
     "build": "pnpm -r --if-present build",
-    "dev": "pnpm --parallel --filter @earthquake/api --filter @earthquake/dashboard dev",
+    "build:packages": "pnpm --filter './packages/**' build",
+    "dev": "pnpm build:packages && pnpm --parallel --filter @earthquake/api --filter @earthquake/dashboard dev",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
-    "test": "pnpm -r --if-present test",
+    "test": "pnpm build:packages && pnpm -r --if-present test",
     "typecheck": "pnpm -r --if-present typecheck",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
     "db:logs": "docker compose logs -f postgres",
-    "infra:synth": "pnpm --filter @earthquake/infrastructure synth"
+    "db:migrate": "pnpm --filter @earthquake/ingestion migrate",
+    "infra:synth": "pnpm --filter @earthquake/infrastructure synth",
+    "ingest:backfill": "pnpm --filter @earthquake/ingestion backfill",
+    "ingest:poll": "pnpm --filter @earthquake/ingestion poll"
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",

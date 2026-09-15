@@ -9,7 +9,7 @@ services:
       - '5432:5432'
     volumes:
       - earthquake-postgres:/var/lib/postgresql/data
-      - ./database/init:/docker-entrypoint-initdb.d:ro
+      - ./database/migrations:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U earthquake -d earthquake']
       interval: 5s

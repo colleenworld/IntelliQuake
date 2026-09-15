@@ -25,3 +25,21 @@ export const EventSearchResponseSchema = z.object({
 
 export type EventSearchQuery = z.infer<typeof EventSearchQuerySchema>;
 export type EventSearchResponse = z.infer<typeof EventSearchResponseSchema>;
+
+export const IngestionModeSchema = z.enum(['poll', 'backfill', 'replay']);
+
+export const RawEventMessageSchema = z.object({
+  schemaVersion: z.literal(1),
+  messageType: z.literal('raw-event-available'),
+  ingestionRunId: z.uuid(),
+  ingestionMode: IngestionModeSchema,
+  source: z.literal('usgs'),
+  sourceEventId: z.string().min(1),
+  sourceUpdatedAt: z.iso.datetime({ offset: true }),
+  rawObjectKey: z.string().min(1),
+  rawObjectChecksum: z.string().regex(/^[a-f0-9]{64}$/),
+  capturedAt: z.iso.datetime({ offset: true }),
+});
+
+export type IngestionMode = z.infer<typeof IngestionModeSchema>;
+export type RawEventMessage = z.infer<typeof RawEventMessageSchema>;

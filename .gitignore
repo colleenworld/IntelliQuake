@@ -7,3 +7,4 @@ cdk.out/
 *.tsbuildinfo
 playwright-report/
 test-results/
+.local/

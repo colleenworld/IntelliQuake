@@ -12,6 +12,14 @@ describe('PlatformFoundationStack', () => {
 
     template.resourceCountIs('AWS::S3::Bucket', 1);
     template.resourceCountIs('AWS::SQS::Queue', 2);
+    template.resourceCountIs('AWS::RDS::DBInstance', 1);
+    template.hasResourceProperties('AWS::Events::Rule', {
+      ScheduleExpression: 'rate(5 minutes)',
+      State: 'ENABLED',
+    });
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      Runtime: 'nodejs24.x',
+    });
     expect(template.toJSON()).toBeDefined();
-  });
+  }, 30_000);
 });
