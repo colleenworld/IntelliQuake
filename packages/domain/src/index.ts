@@ -22,6 +22,20 @@ export const EventSummarySchema = z.object({
 });
 export type EventSummary = z.infer<typeof EventSummarySchema>;
 
+export const EventDetailSchema = EventSummarySchema.extend({
+  eventType: z.string().min(1),
+  status: z.string().min(1),
+  significance: z.number().int().nonnegative(),
+  feltReports: z.number().int().nonnegative().nullable(),
+  tsunami: z.boolean(),
+  sourceUrl: z.url(),
+  sourceUpdatedAt: z.iso.datetime({ offset: true }),
+  firstObservedAt: z.iso.datetime({ offset: true }),
+  lastObservedAt: z.iso.datetime({ offset: true }),
+  revisionCount: z.number().int().positive(),
+});
+export type EventDetail = z.infer<typeof EventDetailSchema>;
+
 export const NormalizedEventSchema = z.object({
   source: z.literal('usgs'),
   sourceEventId: z.string().min(1),

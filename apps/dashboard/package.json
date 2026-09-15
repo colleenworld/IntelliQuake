@@ -11,6 +11,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@earthquake/contracts": "workspace:*",
+    "@earthquake/domain": "workspace:*",
+    "maplibre-gl": "^6.9.0",
     "mobx": "^6.13.7",
     "mobx-react-lite": "^4.1.0",
     "mobx-state-tree": "^7.0.2",
