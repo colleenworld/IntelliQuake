@@ -1,9 +1,0 @@
-packages:
-  - apps/*
-  - packages/*
-  - infrastructure
-
-onlyBuiltDependencies:
-  - esbuild
-allowBuilds:
-  esbuild: true
