@@ -12,6 +12,7 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter());
 
   app.setGlobalPrefix('v1');
+  app.enableCors({ origin: process.env.DASHBOARD_ORIGIN ?? 'http://localhost:5173' });
   app.enableShutdownHooks();
 
   const port = Number(process.env.API_PORT ?? 3000);

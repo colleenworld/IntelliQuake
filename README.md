@@ -4,11 +4,11 @@ A production-oriented engineering demonstration that ingests mutable scientific 
 preserves provenance, identifies explainable candidate seismic series, visualizes events, and
 answers grounded questions.
 
-This repository contains **Increment 1: Catalog ingestion**. It includes the foundation plus a
-USGS polling and backfill path, immutable raw storage, queue processing, PostGIS persistence,
-revision history, and deployable AWS infrastructure. Release boundaries are summarized in
-`docs/product/version-one.md`; the complete product specification is maintained as a companion
-project document.
+This repository contains **Increment 2: Event explorer**. It includes the ingestion foundation plus
+a bounded event API, PostGIS map queries, keyset pagination, URL-backed filters, an interactive
+MapLibre map, animated timeline, event facts, and explicit loading and degraded states. Release
+boundaries are summarized in `docs/product/version-one.md`; the complete product specification is
+maintained as a companion project document.
 
 ## Prerequisites
 
@@ -28,6 +28,7 @@ pnpm dev
 
 - API health: <http://localhost:3000/v1/health>
 - Catalog freshness: <http://localhost:3000/v1/system/freshness>
+- Events: <http://localhost:3000/v1/events?minimumMagnitude=2.5>
 - Dashboard: <http://localhost:5173>
 
 ## Quality checks

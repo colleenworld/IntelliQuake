@@ -1,4 +1,4 @@
-import { EventSummarySchema } from '@earthquake/domain';
+import { EventDetailSchema, EventSummarySchema } from '@earthquake/domain';
 import { z } from 'zod';
 
 export const EventSearchQuerySchema = z
@@ -7,15 +7,42 @@ export const EventSearchQuerySchema = z
     endTime: z.iso.datetime({ offset: true }).optional(),
     minimumMagnitude: z.coerce.number().min(-2).max(10).optional(),
     maximumMagnitude: z.coerce.number().min(-2).max(10).optional(),
+    south: z.coerce.number().min(-90).max(90).optional(),
+    west: z.coerce.number().min(-180).max(180).optional(),
+    north: z.coerce.number().min(-90).max(90).optional(),
+    east: z.coerce.number().min(-180).max(180).optional(),
     limit: z.coerce.number().int().min(1).max(500).default(100),
     cursor: z.string().optional(),
   })
+  .refine(
+    ({ startTime, endTime }) =>
+      startTime === undefined || endTime === undefined || startTime < endTime,
+    { message: 'startTime must precede endTime' },
+  )
   .refine(
     ({ minimumMagnitude, maximumMagnitude }) =>
       minimumMagnitude === undefined ||
       maximumMagnitude === undefined ||
       minimumMagnitude <= maximumMagnitude,
     { message: 'minimumMagnitude must not exceed maximumMagnitude' },
+  )
+  .refine(
+    ({ south, west, north, east }) => {
+      const bounds = [south, west, north, east];
+      return (
+        bounds.every((value) => value === undefined) || bounds.every((value) => value !== undefined)
+      );
+    },
+    { message: 'south, west, north, and east must be supplied together' },
+  )
+  .refine(
+    ({ south, west, north, east }) =>
+      south === undefined ||
+      west === undefined ||
+      north === undefined ||
+      east === undefined ||
+      (south < north && west < east),
+    { message: 'map bounds must have south < north and west < east' },
   );
 
 export const EventSearchResponseSchema = z.object({
@@ -25,6 +52,9 @@ export const EventSearchResponseSchema = z.object({
 
 export type EventSearchQuery = z.infer<typeof EventSearchQuerySchema>;
 export type EventSearchResponse = z.infer<typeof EventSearchResponseSchema>;
+
+export const EventDetailResponseSchema = z.object({ event: EventDetailSchema });
+export type EventDetailResponse = z.infer<typeof EventDetailResponseSchema>;
 
 export const IngestionModeSchema = z.enum(['poll', 'backfill', 'replay']);
 
