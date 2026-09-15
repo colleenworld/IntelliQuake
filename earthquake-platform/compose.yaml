@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: earthquake
+      POSTGRES_USER: earthquake
+      POSTGRES_PASSWORD: earthquake
+    ports:
+      - '5432:5432'
+    volumes:
+      - earthquake-postgres:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U earthquake -d earthquake']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  earthquake-postgres:

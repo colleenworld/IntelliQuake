@@ -1,0 +1,32 @@
+{
+  "name": "@earthquake/ingestion",
+  "version": "0.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "src/index.ts",
+  "scripts": {
+    "backfill": "tsx --env-file-if-exists=../../.env src/cli/backfill.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint src test",
+    "migrate": "tsx --env-file-if-exists=../../.env src/cli/migrate.ts",
+    "poll": "tsx --env-file-if-exists=../../.env src/cli/poll.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.883.0",
+    "@aws-sdk/client-secrets-manager": "^3.883.0",
+    "@aws-sdk/client-sqs": "^3.883.0",
+    "@earthquake/contracts": "workspace:*",
+    "@earthquake/domain": "workspace:*",
+    "@earthquake/observability": "workspace:*",
+    "pg": "^8.16.3",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.152",
+    "@types/pg": "^8.15.5",
+    "tsx": "^4.20.5",
+    "vitest": "^3.2.4"
+  }
+}
