@@ -8,6 +8,12 @@ import { ClassificationRunsController, SeriesController } from './series.control
 import { SeriesService } from './series.service';
 import { EventsController } from './events.controller';
 import { EventsService } from './events.service';
+import { ChatController } from './chat/chat.controller';
+import { ChatRateLimiter } from './chat/chat-rate-limiter';
+import { ChatService, CHAT_LOGGER } from './chat/chat.service';
+import { CatalogChatTools } from './chat/chat-tools';
+import { MODEL_PROVIDER, OpenAIModelProvider } from './chat/model-provider';
+import { createLogger } from '@earthquake/observability';
 
 @Module({
   controllers: [
@@ -16,11 +22,20 @@ import { EventsService } from './events.service';
     EventsController,
     SeriesController,
     ClassificationRunsController,
+    ChatController,
   ],
   providers: [
     FreshnessService,
     EventsService,
     SeriesService,
+    ChatService,
+    ChatRateLimiter,
+    CatalogChatTools,
+    { provide: CHAT_LOGGER, useFactory: () => createLogger('chat') },
+    {
+      provide: MODEL_PROVIDER,
+      useFactory: () => new OpenAIModelProvider(process.env.OPENAI_API_KEY ?? ''),
+    },
     {
       provide: DATABASE,
       useFactory: createDatabasePool,

@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { useEffect } from 'react';
 
 import { EventMap } from './EventMap';
+import { ChatPanel } from './ChatPanel';
 import { explorerStore } from './store';
 
 const formatTime = (value: string) =>
@@ -412,6 +413,7 @@ export const App = observer(function App() {
           </ol>
         )}
       </section>
+      <ChatPanel />
     </main>
   );
 });

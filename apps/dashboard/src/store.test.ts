@@ -96,4 +96,27 @@ describe('ExplorerStore', () => {
     expect(store.events).toHaveLength(1);
     expect(store.errorMessage).toBe('network unavailable');
   });
+
+  it('owns streamed chat state and grounded citations', async () => {
+    const store = ExplorerStoreModel.create({ chatDraft: 'What is the largest event?' });
+    await store.sendChat(async function* () {
+      yield { type: 'status', phase: 'tool', tool: 'get_largest_events' } as const;
+      yield {
+        type: 'citation',
+        citation: {
+          kind: 'event',
+          id: '00000000-0000-4000-8000-000000000001',
+          label: 'M 7.1 · Test event',
+          href: '/?event=00000000-0000-4000-8000-000000000001',
+        },
+      } as const;
+      yield { type: 'delta', text: 'The largest event was M 7.1.' } as const;
+      yield { type: 'done', usage: { inputTokens: 10, outputTokens: 8 } } as const;
+    });
+
+    expect(store.chatMessages).toHaveLength(2);
+    expect(store.chatMessages[1]?.content).toBe('The largest event was M 7.1.');
+    expect(store.chatMessages[1]?.citations[0]?.kind).toBe('event');
+    expect(store.chatStatus).toBe('idle');
+  });
 });
