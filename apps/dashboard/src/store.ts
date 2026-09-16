@@ -7,6 +7,7 @@ import type {
   SeriesDetail,
   SeriesSummary,
 } from '@earthquake/domain';
+import type { ChatCitation, ChatStreamEvent } from '@earthquake/contracts';
 
 import {
   fetchEventDetail,
@@ -17,6 +18,8 @@ import {
   type EventPageFetcher,
   type SeriesDetailFetcher,
   type SeriesPageFetcher,
+  streamChat,
+  type ChatEventFetcher,
 } from './api';
 
 export const EventModel = types.model('Event', {
@@ -28,6 +31,13 @@ export const EventModel = types.model('Event', {
   place: types.maybeNull(types.string),
   source: types.string,
   sourceEventId: types.string,
+});
+
+export const ChatMessageModel = types.model('ChatMessage', {
+  id: types.identifier,
+  role: types.enumeration(['user', 'assistant']),
+  content: types.string,
+  citations: types.array(types.frozen<ChatCitation>()),
 });
 
 function optionalIso(value: string): string | undefined {
@@ -60,6 +70,14 @@ export const ExplorerStoreModel = types
     mapMessage: types.maybeNull(types.string),
     isPlaying: types.optional(types.boolean, false),
     lastUpdatedAt: types.maybeNull(types.string),
+    chatDraft: types.optional(types.string, ''),
+    chatMessages: types.array(ChatMessageModel),
+    chatStatus: types.optional(
+      types.enumeration(['idle', 'thinking', 'tool', 'streaming', 'error']),
+      'idle',
+    ),
+    chatTool: types.maybeNull(types.string),
+    chatErrorMessage: types.maybeNull(types.string),
   })
   .views((self) => ({
     get selectedEvent(): Instance<typeof EventModel> | undefined {
@@ -170,6 +188,71 @@ export const ExplorerStoreModel = types
       }
     });
 
+    const sendChat = flow(function* sendChat(
+      fetcher: ChatEventFetcher = streamChat,
+    ): Generator<Promise<IteratorResult<ChatStreamEvent>>, void, IteratorResult<ChatStreamEvent>> {
+      const message = self.chatDraft.trim();
+      if (
+        !message ||
+        self.chatStatus === 'thinking' ||
+        self.chatStatus === 'tool' ||
+        self.chatStatus === 'streaming'
+      )
+        return;
+      const history = self.chatMessages.slice(-12).map((item) => ({
+        role: item.role as 'user' | 'assistant',
+        content: item.content,
+      }));
+      self.chatMessages.push({
+        id: crypto.randomUUID(),
+        role: 'user',
+        content: message,
+        citations: [],
+      });
+      const assistantId = crypto.randomUUID();
+      self.chatMessages.push({ id: assistantId, role: 'assistant', content: '', citations: [] });
+      self.chatDraft = '';
+      self.chatStatus = 'thinking';
+      self.chatErrorMessage = null;
+      const iterator = fetcher({
+        message,
+        history,
+        context: {
+          selectedEventId: self.selectedEventId ?? undefined,
+          selectedSeriesId: self.selectedSeriesId ?? undefined,
+        },
+      });
+      try {
+        while (true) {
+          const next = yield iterator.next();
+          if (next.done) break;
+          const event = next.value;
+          const assistant = self.chatMessages.find((item) => item.id === assistantId)!;
+          if (event.type === 'status') {
+            self.chatStatus = event.phase;
+            self.chatTool = event.tool ?? null;
+          } else if (event.type === 'delta') {
+            self.chatStatus = 'streaming';
+            assistant.content += event.text;
+          } else if (event.type === 'citation') {
+            assistant.citations.push(event.citation);
+          } else if (event.type === 'error') {
+            throw new Error(event.message);
+          } else {
+            self.chatStatus = 'idle';
+            self.chatTool = null;
+          }
+        }
+      } catch (error) {
+        self.chatStatus = 'error';
+        self.chatErrorMessage =
+          error instanceof Error ? error.message : 'Unable to answer right now';
+        const assistant = self.chatMessages.find((item) => item.id === assistantId);
+        if (assistant && !assistant.content)
+          assistant.content = 'I could not complete that request.';
+      }
+    });
+
     return {
       setMinimumMagnitude(value: number): void {
         self.minimumMagnitude = value;
@@ -226,10 +309,19 @@ export const ExplorerStoreModel = types
       setMapDegraded(message: string): void {
         self.mapMessage = message;
       },
+      setChatDraft(value: string): void {
+        self.chatDraft = value;
+      },
+      clearChat(): void {
+        self.chatMessages.clear();
+        self.chatStatus = 'idle';
+        self.chatErrorMessage = null;
+      },
       loadEvents,
       loadSelectedEvent,
       loadSeries,
       loadSelectedSeries,
+      sendChat,
     };
   });
 

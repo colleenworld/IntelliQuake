@@ -4,9 +4,10 @@ A production-oriented engineering demonstration that ingests mutable scientific 
 preserves provenance, identifies explainable candidate seismic series, visualizes events, and
 answers grounded questions.
 
-This repository contains **Increment 3: Candidate series**. It includes the ingestion and explorer
-foundation plus a versioned deterministic classifier, revision-watermarked inputs, persisted edge
-evidence and memberships, series APIs, and an explicitly non-authoritative series visualization.
+This repository contains **Increment 4: Conversational interface**. It includes the ingestion,
+explorer, and candidate-series foundation plus typed read-only catalog tools, provider-isolated
+model orchestration, streamed grounded answers, navigable citations, prediction refusal, rate
+limits, redacted telemetry, and conversational evaluation cases.
 Release boundaries are summarized in `docs/product/version-one.md`; the complete product
 specification is maintained as a companion project document.
 
@@ -30,6 +31,7 @@ pnpm dev
 - Catalog freshness: <http://localhost:3000/v1/system/freshness>
 - Events: <http://localhost:3000/v1/events?minimumMagnitude=2.5>
 - Candidate series: <http://localhost:3000/v1/series>
+- Streamed chat: `POST http://localhost:3000/v1/chat`
 - Dashboard: <http://localhost:5173>
 
 ## Quality checks
@@ -91,6 +93,9 @@ Raw objects are written beneath `.local/raw` and normalized revisions are writte
 to PostgreSQL. Re-running the same import is safe and records unchanged processing outcomes.
 Classification reads a revision snapshot at a recorded watermark and appends a new run with its
 parameters, evidence, candidate series, and membership explanations.
+
+To use chat, set `OPENAI_API_KEY` in `.env`; optionally override `OPENAI_MODEL`. The key remains in
+the API process and is never exposed through Vite or sent to catalog tools.
 
 ## Engineering principles
 

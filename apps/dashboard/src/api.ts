@@ -9,6 +9,9 @@ import {
   type SeriesDetailResponse,
   type SeriesSearchQuery,
   type SeriesSearchResponse,
+  ChatStreamEventSchema,
+  type ChatRequest,
+  type ChatStreamEvent,
 } from '@earthquake/contracts';
 
 const apiUrl = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000').replace(/\/$/, '');
@@ -45,3 +48,29 @@ export const fetchSeriesPage: SeriesPageFetcher = async (query) => {
 
 export const fetchSeriesDetail: SeriesDetailFetcher = async (id) =>
   SeriesDetailResponseSchema.parse(await getJson(`/series/${encodeURIComponent(id)}`));
+
+export type ChatEventFetcher = (request: ChatRequest) => AsyncGenerator<ChatStreamEvent>;
+
+export const streamChat: ChatEventFetcher = async function* (request) {
+  const response = await fetch(`${apiUrl}/v1/chat`, {
+    method: 'POST',
+    headers: { accept: 'text/event-stream', 'content-type': 'application/json' },
+    body: JSON.stringify(request),
+  });
+  if (!response.ok || !response.body) {
+    throw new Error(`Chat request failed with status ${response.status}`);
+  }
+  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+  let buffer = '';
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += value;
+    const frames = buffer.split('\n\n');
+    buffer = frames.pop() ?? '';
+    for (const frame of frames) {
+      const line = frame.split('\n').find((entry) => entry.startsWith('data: '));
+      if (line) yield ChatStreamEventSchema.parse(JSON.parse(line.slice(6)) as unknown);
+    }
+  }
+};

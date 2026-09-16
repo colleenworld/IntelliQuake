@@ -575,3 +575,127 @@ a:focus-visible {
     transition-duration: 0.01ms !important;
   }
 }
+
+.chat-panel {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  border: 1px solid #263e50;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #0d1d28, #102735);
+}
+
+.chat-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.chat-heading h2 {
+  margin: 0.2rem 0 0;
+}
+.chat-boundary {
+  color: #aac0ce;
+  max-width: 75ch;
+}
+.chat-clear {
+  background: transparent;
+  color: #c7d9e4;
+  border: 1px solid #496274;
+}
+.chat-transcript {
+  display: grid;
+  gap: 0.85rem;
+  margin: 1.25rem 0;
+  max-height: 34rem;
+  overflow: auto;
+}
+.chat-message {
+  max-width: min(78%, 48rem);
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+}
+.chat-message p {
+  margin: 0.35rem 0 0;
+  white-space: pre-wrap;
+  line-height: 1.55;
+}
+.chat-message--user {
+  justify-self: end;
+  background: #173b50;
+}
+.chat-message--assistant {
+  justify-self: start;
+  background: #162631;
+  border: 1px solid #304858;
+}
+.chat-citations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.8rem;
+}
+.chat-citations span {
+  width: 100%;
+  color: #91a9b8;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.chat-citations a {
+  color: #9ed9ff;
+  border: 1px solid #355b72;
+  border-radius: 999px;
+  padding: 0.3rem 0.55rem;
+  font-size: 0.82rem;
+  text-decoration: none;
+}
+.chat-prompts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+}
+.chat-prompts button {
+  background: #162d3b;
+  color: #d9e8f1;
+  border: 1px solid #355469;
+}
+.chat-working {
+  color: #9ed9ff;
+}
+.chat-error {
+  color: #ffb2a8;
+}
+.chat-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 0.75rem;
+}
+.chat-form label {
+  grid-column: 1 / -1;
+  color: #b8cad5;
+}
+.chat-form textarea {
+  resize: vertical;
+  min-height: 5.5rem;
+  color: #eef7fb;
+  background: #091720;
+  border: 1px solid #3a5668;
+  border-radius: 10px;
+  padding: 0.75rem;
+  font: inherit;
+}
+.chat-form button {
+  min-height: 3rem;
+}
+
+@media (max-width: 620px) {
+  .chat-message {
+    max-width: 94%;
+  }
+  .chat-form {
+    grid-template-columns: 1fr;
+  }
+}

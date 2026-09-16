@@ -85,6 +85,56 @@ export const ClassificationRunResponseSchema = z.object({
 });
 export type ClassificationRunResponse = z.infer<typeof ClassificationRunResponseSchema>;
 
+export const ChatRoleSchema = z.enum(['user', 'assistant']);
+export const ChatHistoryMessageSchema = z.object({
+  role: ChatRoleSchema,
+  content: z.string().trim().min(1).max(4_000),
+});
+export const ChatRequestSchema = z.object({
+  message: z.string().trim().min(1).max(2_000),
+  history: z.array(ChatHistoryMessageSchema).max(12).default([]),
+  context: z
+    .object({
+      selectedEventId: z.uuid().optional(),
+      selectedSeriesId: z.uuid().optional(),
+    })
+    .optional(),
+});
+export type ChatRequest = z.infer<typeof ChatRequestSchema>;
+
+export const ChatCitationSchema = z.object({
+  kind: z.enum(['event', 'series']),
+  id: z.uuid(),
+  label: z.string().min(1),
+  href: z.string().startsWith('/'),
+  timeRange: z
+    .object({
+      start: z.iso.datetime({ offset: true }),
+      end: z.iso.datetime({ offset: true }),
+    })
+    .optional(),
+});
+export type ChatCitation = z.infer<typeof ChatCitationSchema>;
+
+export const ChatStreamEventSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('status'),
+    phase: z.enum(['thinking', 'tool']),
+    tool: z.string().optional(),
+  }),
+  z.object({ type: z.literal('delta'), text: z.string() }),
+  z.object({ type: z.literal('citation'), citation: ChatCitationSchema }),
+  z.object({
+    type: z.literal('done'),
+    usage: z.object({
+      inputTokens: z.number().int().nonnegative(),
+      outputTokens: z.number().int().nonnegative(),
+    }),
+  }),
+  z.object({ type: z.literal('error'), message: z.string().min(1) }),
+]);
+export type ChatStreamEvent = z.infer<typeof ChatStreamEventSchema>;
+
 export const IngestionModeSchema = z.enum(['poll', 'backfill', 'replay']);
 
 export const RawEventMessageSchema = z.object({
