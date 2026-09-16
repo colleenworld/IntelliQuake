@@ -17,6 +17,13 @@ describe('PlatformFoundationStack', () => {
       ScheduleExpression: 'rate(5 minutes)',
       State: 'ENABLED',
     });
+    template.hasResourceProperties('AWS::Events::Rule', {
+      ScheduleExpression: 'rate(15 minutes)',
+      State: 'ENABLED',
+    });
+    template.hasResourceProperties('AWS::CloudFormation::CustomResource', {
+      schemaVersion: '002',
+    });
     template.hasResourceProperties('AWS::Lambda::Function', {
       Runtime: 'nodejs24.x',
     });

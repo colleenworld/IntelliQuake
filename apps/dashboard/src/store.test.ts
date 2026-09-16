@@ -46,6 +46,34 @@ describe('ExplorerStore', () => {
     expect(store.minimumMagnitude).toBe(2.5);
   });
 
+  it('owns candidate-series selection and deep links in the root store', async () => {
+    const store = ExplorerStoreModel.create();
+    await store.loadSeries(
+      async () =>
+        ({
+          series: [
+            {
+              id: '00000000-0000-4000-8000-000000000201',
+              classificationRunId: '00000000-0000-4000-8000-000000000101',
+              mainshockCandidateEventId: '00000000-0000-4000-8000-000000000001',
+              startTime: '2026-09-14T00:00:00.000Z',
+              endTime: '2026-09-14T04:00:00.000Z',
+              eventCount: 3,
+              maximumMagnitude: 5.2,
+              centroid: { latitude: -41.1, longitude: 174.1 },
+              displayName: 'Candidate series near Cook Strait',
+            },
+          ],
+          classificationRun: null,
+          nextCursor: null,
+        }) as never,
+    );
+    store.selectSeries('00000000-0000-4000-8000-000000000201');
+
+    expect(store.selectedSeries?.displayName).toBe('Candidate series near Cook Strait');
+    expect(store.urlSearch).toContain('series=00000000-0000-4000-8000-000000000201');
+  });
+
   it('keeps existing data visible when a refresh fails', async () => {
     const store = ExplorerStoreModel.create({
       events: [

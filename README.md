@@ -4,11 +4,11 @@ A production-oriented engineering demonstration that ingests mutable scientific 
 preserves provenance, identifies explainable candidate seismic series, visualizes events, and
 answers grounded questions.
 
-This repository contains **Increment 2: Event explorer**. It includes the ingestion foundation plus
-a bounded event API, PostGIS map queries, keyset pagination, URL-backed filters, an interactive
-MapLibre map, animated timeline, event facts, and explicit loading and degraded states. Release
-boundaries are summarized in `docs/product/version-one.md`; the complete product specification is
-maintained as a companion project document.
+This repository contains **Increment 3: Candidate series**. It includes the ingestion and explorer
+foundation plus a versioned deterministic classifier, revision-watermarked inputs, persisted edge
+evidence and memberships, series APIs, and an explicitly non-authoritative series visualization.
+Release boundaries are summarized in `docs/product/version-one.md`; the complete product
+specification is maintained as a companion project document.
 
 ## Prerequisites
 
@@ -29,6 +29,7 @@ pnpm dev
 - API health: <http://localhost:3000/v1/health>
 - Catalog freshness: <http://localhost:3000/v1/system/freshness>
 - Events: <http://localhost:3000/v1/events?minimumMagnitude=2.5>
+- Candidate series: <http://localhost:3000/v1/series>
 - Dashboard: <http://localhost:5173>
 
 ## Quality checks
@@ -45,6 +46,7 @@ apps/api             NestJS/Fastify application API
 apps/dashboard       React/Vite dashboard
 apps/ingestion       USGS clients, producers, processors, adapters, handlers, and CLIs
 packages/contracts   Boundary schemas and API contracts
+packages/classification Deterministic candidate-series algorithm
 packages/domain      Domain value objects and validation
 packages/observability Structured logging foundation
 infrastructure       AWS CDK application
@@ -71,6 +73,7 @@ multi-catalog reconciliation, and advanced scientific classification are intenti
 | `pnpm db:migrate`                                             | Apply pending PostGIS schema migrations.                   |
 | `pnpm ingest:poll`                                            | Fetch and process the configured USGS feed locally.        |
 | `pnpm ingest:backfill -- --start=2026-09-01 --end=2026-09-02` | Run a bounded historical import.                           |
+| `pnpm series:classify`                                        | Classify the configured recent analysis interval.          |
 | `pnpm infra:synth`                                            | Synthesize the CDK stack.                                  |
 
 ## Run the ingestion path locally
@@ -81,10 +84,13 @@ pnpm db:up
 pnpm db:migrate
 pnpm ingest:poll
 pnpm ingest:backfill -- --start=2026-09-01 --end=2026-09-02 --minimum-magnitude=2.5
+pnpm series:classify
 ```
 
 Raw objects are written beneath `.local/raw` and normalized revisions are written transactionally
 to PostgreSQL. Re-running the same import is safe and records unchanged processing outcomes.
+Classification reads a revision snapshot at a recorded watermark and appends a new run with its
+parameters, evidence, candidate series, and membership explanations.
 
 ## Engineering principles
 

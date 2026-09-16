@@ -47,6 +47,30 @@ describe('EventsService', () => {
     expect(query).not.toHaveBeenCalled();
   });
 
+  it('rejects a cursor whose event ID is not a UUID', async () => {
+    const query = vi.fn();
+    const service = new EventsService({ query } as unknown as Queryable);
+    const cursor = Buffer.from(
+      JSON.stringify({ originTime: '2026-09-14T12:00:00.000Z', id: 'not-an-event-id' }),
+    ).toString('base64url');
+
+    await expect(service.search({ cursor })).rejects.toBeInstanceOf(BadRequestException);
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  it('composes candidate-series membership with event filters', async () => {
+    const query = vi.fn(async () => ({ rows: [], rowCount: 0 }));
+    const service = new EventsService({ query } as unknown as Queryable);
+    const seriesId = '00000000-0000-4000-8000-000000000201';
+
+    await service.search({ seriesId });
+
+    expect(query).toHaveBeenCalledWith(expect.stringContaining('series_memberships'), [
+      seriesId,
+      101,
+    ]);
+  });
+
   it('reports a missing event', async () => {
     const database: Queryable = {
       query: async () => Promise.resolve({ rows: [], rowCount: 0 }),

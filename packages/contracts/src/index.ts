@@ -1,4 +1,10 @@
-import { EventDetailSchema, EventSummarySchema } from '@earthquake/domain';
+import {
+  ClassificationRunSchema,
+  EventDetailSchema,
+  SeriesDetailSchema,
+  SeriesSummarySchema,
+  EventSummarySchema,
+} from '@earthquake/domain';
 import { z } from 'zod';
 
 export const EventSearchQuerySchema = z
@@ -11,6 +17,7 @@ export const EventSearchQuerySchema = z
     west: z.coerce.number().min(-180).max(180).optional(),
     north: z.coerce.number().min(-90).max(90).optional(),
     east: z.coerce.number().min(-180).max(180).optional(),
+    seriesId: z.uuid().optional(),
     limit: z.coerce.number().int().min(1).max(500).default(100),
     cursor: z.string().optional(),
   })
@@ -55,6 +62,28 @@ export type EventSearchResponse = z.infer<typeof EventSearchResponseSchema>;
 
 export const EventDetailResponseSchema = z.object({ event: EventDetailSchema });
 export type EventDetailResponse = z.infer<typeof EventDetailResponseSchema>;
+
+export const SeriesSearchQuerySchema = z.object({
+  classificationRunId: z.uuid().optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(25),
+  cursor: z.string().optional(),
+});
+export type SeriesSearchQuery = z.infer<typeof SeriesSearchQuerySchema>;
+
+export const SeriesSearchResponseSchema = z.object({
+  series: z.array(SeriesSummarySchema),
+  classificationRun: ClassificationRunSchema.nullable(),
+  nextCursor: z.string().nullable(),
+});
+export type SeriesSearchResponse = z.infer<typeof SeriesSearchResponseSchema>;
+
+export const SeriesDetailResponseSchema = z.object({ series: SeriesDetailSchema });
+export type SeriesDetailResponse = z.infer<typeof SeriesDetailResponseSchema>;
+
+export const ClassificationRunResponseSchema = z.object({
+  classificationRun: ClassificationRunSchema,
+});
+export type ClassificationRunResponse = z.infer<typeof ClassificationRunResponseSchema>;
 
 export const IngestionModeSchema = z.enum(['poll', 'backfill', 'replay']);
 

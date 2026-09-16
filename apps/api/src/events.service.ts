@@ -7,6 +7,7 @@ import {
   type EventDetailResponse,
   type EventSearchResponse,
 } from '@earthquake/contracts';
+import { z } from 'zod';
 
 import { DATABASE, type Queryable } from './database.provider';
 
@@ -41,6 +42,11 @@ interface EventCursor {
   id: string;
 }
 
+const EventCursorSchema = z.object({
+  originTime: z.iso.datetime({ offset: true }),
+  id: z.uuid(),
+});
+
 function dateToIso(value: Date | string): string {
   return new Date(value).toISOString();
 }
@@ -53,19 +59,9 @@ function encodeCursor(row: EventRow): string {
 
 function decodeCursor(cursor: string): EventCursor {
   try {
-    const value = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8')) as unknown;
-    if (
-      typeof value !== 'object' ||
-      value === null ||
-      !('originTime' in value) ||
-      !('id' in value) ||
-      typeof value.originTime !== 'string' ||
-      typeof value.id !== 'string' ||
-      Number.isNaN(Date.parse(value.originTime))
-    ) {
-      throw new Error('Invalid cursor payload');
-    }
-    return { originTime: value.originTime, id: value.id };
+    return EventCursorSchema.parse(
+      JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8')) as unknown,
+    );
   } catch {
     throw new BadRequestException('cursor is invalid');
   }
@@ -116,6 +112,13 @@ export class EventsService {
     }
     if (query.maximumMagnitude !== undefined) {
       where.push(`ce.preferred_magnitude <= ${add(query.maximumMagnitude)}::numeric`);
+    }
+    if (query.seriesId) {
+      where.push(
+        `EXISTS (SELECT 1 FROM series_memberships membership
+                 WHERE membership.canonical_event_id = ce.id
+                   AND membership.series_id = ${add(query.seriesId)}::uuid)`,
+      );
     }
     if (
       query.south !== undefined &&

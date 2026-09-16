@@ -36,6 +36,77 @@ export const EventDetailSchema = EventSummarySchema.extend({
 });
 export type EventDetail = z.infer<typeof EventDetailSchema>;
 
+export const SeriesIdSchema = z.string().uuid().brand<'SeriesId'>();
+export type SeriesId = z.infer<typeof SeriesIdSchema>;
+
+export const ClassificationRunIdSchema = z.string().uuid().brand<'ClassificationRunId'>();
+export type ClassificationRunId = z.infer<typeof ClassificationRunIdSchema>;
+
+export const ClassificationRunSchema = z.object({
+  id: ClassificationRunIdSchema,
+  algorithm: z.string().min(1),
+  algorithmVersion: z.string().min(1),
+  parameters: z.record(z.string(), z.number()),
+  catalogWatermark: z.iso.datetime({ offset: true }),
+  analysisStart: z.iso.datetime({ offset: true }),
+  analysisEnd: z.iso.datetime({ offset: true }),
+  status: z.enum(['running', 'succeeded', 'failed']),
+  startedAt: z.iso.datetime({ offset: true }),
+  completedAt: z.iso.datetime({ offset: true }).nullable(),
+  inputCount: z.number().int().nonnegative(),
+  seriesCount: z.number().int().nonnegative(),
+  membershipCount: z.number().int().nonnegative(),
+  failureCount: z.number().int().nonnegative(),
+  errorSummary: z.string().nullable(),
+});
+export type ClassificationRun = z.infer<typeof ClassificationRunSchema>;
+
+export const SeriesSummarySchema = z.object({
+  id: SeriesIdSchema,
+  classificationRunId: ClassificationRunIdSchema,
+  mainshockCandidateEventId: EventIdSchema,
+  startTime: z.iso.datetime({ offset: true }),
+  endTime: z.iso.datetime({ offset: true }),
+  eventCount: z.number().int().min(2),
+  maximumMagnitude: z.number().nullable(),
+  centroid: CoordinatesSchema.omit({ depthKm: true }),
+  displayName: z.string().min(1),
+});
+export type SeriesSummary = z.infer<typeof SeriesSummarySchema>;
+
+export const SeriesMembershipSchema = z.object({
+  event: EventSummarySchema,
+  role: z.enum(['earlier_event', 'mainshock_candidate', 'later_event']),
+  confidence: z.number().min(0).max(1),
+  explanation: z.object({
+    relatedEventId: EventIdSchema,
+    timeDeltaSeconds: z.number().int().nonnegative(),
+    distanceKm: z.number().nonnegative(),
+    rule: z.string().min(1),
+    edgeScore: z.number().min(0).max(1),
+  }),
+});
+export type SeriesMembership = z.infer<typeof SeriesMembershipSchema>;
+
+export const SeriesEdgeSchema = z.object({
+  sourceEventId: EventIdSchema,
+  targetEventId: EventIdSchema,
+  timeDeltaSeconds: z.number().int().nonnegative(),
+  distanceKm: z.number().nonnegative(),
+  magnitudeDelta: z.number().nonnegative().nullable(),
+  score: z.number().min(0).max(1),
+  rule: z.string().min(1),
+  accepted: z.boolean(),
+});
+export type SeriesEdge = z.infer<typeof SeriesEdgeSchema>;
+
+export const SeriesDetailSchema = SeriesSummarySchema.extend({
+  classificationRun: ClassificationRunSchema,
+  memberships: z.array(SeriesMembershipSchema).min(2),
+  edges: z.array(SeriesEdgeSchema),
+});
+export type SeriesDetail = z.infer<typeof SeriesDetailSchema>;
+
 export const NormalizedEventSchema = z.object({
   source: z.literal('usgs'),
   sourceEventId: z.string().min(1),
