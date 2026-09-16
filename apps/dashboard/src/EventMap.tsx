@@ -12,11 +12,19 @@ interface MapEvent {
 interface EventMapProps {
   events: readonly MapEvent[];
   selectedEventId: string | null;
+  seriesMemberIds: readonly string[];
+  mainshockCandidateEventId: string | null;
   onSelect: (id: string) => void;
   onDegraded: (message: string) => void;
 }
 
-function eventData(events: readonly MapEvent[]) {
+function eventData(
+  events: readonly MapEvent[],
+  seriesMemberIds: readonly string[],
+  mainshockCandidateEventId: string | null,
+  selectedEventId: string | null,
+) {
+  const memberIds = new Set(seriesMemberIds);
   return {
     type: 'FeatureCollection' as const,
     features: events.map((event) => ({
@@ -25,12 +33,26 @@ function eventData(events: readonly MapEvent[]) {
         type: 'Point' as const,
         coordinates: [event.coordinates.longitude, event.coordinates.latitude],
       },
-      properties: { id: event.id, magnitude: event.magnitude ?? 0, place: event.place ?? '' },
+      properties: {
+        id: event.id,
+        magnitude: event.magnitude ?? 0,
+        place: event.place ?? '',
+        seriesMember: memberIds.has(event.id),
+        mainshockCandidate: event.id === mainshockCandidateEventId,
+        selected: event.id === selectedEventId,
+      },
     })),
   };
 }
 
-export function EventMap({ events, selectedEventId, onSelect, onDegraded }: EventMapProps) {
+export function EventMap({
+  events,
+  selectedEventId,
+  seriesMemberIds,
+  mainshockCandidateEventId,
+  onSelect,
+  onDegraded,
+}: EventMapProps) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibreMap | null>(null);
   const selectHandler = useRef(onSelect);
@@ -54,7 +76,7 @@ export function EventMap({ events, selectedEventId, onSelect, onDegraded }: Even
       instance.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
       instance.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
       instance.on('load', () => {
-        instance.addSource('events', { type: 'geojson', data: eventData([]) });
+        instance.addSource('events', { type: 'geojson', data: eventData([], [], null, null) });
         instance.addLayer({
           id: 'event-halos',
           type: 'circle',
@@ -71,9 +93,25 @@ export function EventMap({ events, selectedEventId, onSelect, onDegraded }: Even
           source: 'events',
           paint: {
             'circle-radius': ['+', 3, ['*', 1.25, ['get', 'magnitude']]],
-            'circle-color': '#66d5c8',
+            'circle-color': [
+              'case',
+              ['get', 'selected'],
+              '#f0ad4e',
+              ['get', 'mainshockCandidate'],
+              '#ff6f91',
+              ['get', 'seriesMember'],
+              '#a78bfa',
+              '#66d5c8',
+            ],
             'circle-stroke-color': '#e8f0f5',
-            'circle-stroke-width': 1,
+            'circle-stroke-width': [
+              'case',
+              ['get', 'mainshockCandidate'],
+              3,
+              ['get', 'seriesMember'],
+              2,
+              1,
+            ],
           },
         });
         instance.on('click', 'events', (event: MapLayerMouseEvent) => {
@@ -105,14 +143,18 @@ export function EventMap({ events, selectedEventId, onSelect, onDegraded }: Even
     const instance = map.current;
     if (!instance?.isStyleLoaded()) {
       const updateAfterLoad = () => {
-        (instance?.getSource('events') as GeoJSONSource | undefined)?.setData(eventData(events));
+        (instance?.getSource('events') as GeoJSONSource | undefined)?.setData(
+          eventData(events, seriesMemberIds, mainshockCandidateEventId, selectedEventId),
+        );
       };
       instance?.once('load', updateAfterLoad);
       return () => {
         instance?.off('load', updateAfterLoad);
       };
     }
-    (instance.getSource('events') as GeoJSONSource | undefined)?.setData(eventData(events));
+    (instance.getSource('events') as GeoJSONSource | undefined)?.setData(
+      eventData(events, seriesMemberIds, mainshockCandidateEventId, selectedEventId),
+    );
     const eventSet = events.map((event) => event.id).join(',');
     if (events.length > 0 && fittedEventSet.current !== eventSet) {
       const bounds = new maplibregl.LngLatBounds();
@@ -122,18 +164,7 @@ export function EventMap({ events, selectedEventId, onSelect, onDegraded }: Even
       instance.fitBounds(bounds, { padding: 56, maxZoom: 6, duration: 800 });
       fittedEventSet.current = eventSet;
     }
-  }, [events]);
-
-  useEffect(() => {
-    const instance = map.current;
-    if (!instance?.getLayer('events')) return;
-    instance.setPaintProperty('events', 'circle-color', [
-      'case',
-      ['==', ['get', 'id'], selectedEventId ?? ''],
-      '#f0ad4e',
-      '#66d5c8',
-    ]);
-  }, [selectedEventId]);
+  }, [events, mainshockCandidateEventId, selectedEventId, seriesMemberIds]);
 
   return (
     <div

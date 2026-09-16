@@ -7,6 +7,7 @@
   "scripts": {
     "backfill": "tsx --env-file-if-exists=../../.env src/cli/backfill.ts",
     "build": "tsc -p tsconfig.build.json",
+    "classify": "tsx --env-file-if-exists=../../.env src/cli/classify.ts",
     "lint": "eslint src test",
     "migrate": "tsx --env-file-if-exists=../../.env src/cli/migrate.ts",
     "poll": "tsx --env-file-if-exists=../../.env src/cli/poll.ts",
@@ -17,6 +18,7 @@
     "@aws-sdk/client-s3": "^3.883.0",
     "@aws-sdk/client-secrets-manager": "^3.883.0",
     "@aws-sdk/client-sqs": "^3.883.0",
+    "@earthquake/classification": "workspace:*",
     "@earthquake/contracts": "workspace:*",
     "@earthquake/domain": "workspace:*",
     "@earthquake/observability": "workspace:*",

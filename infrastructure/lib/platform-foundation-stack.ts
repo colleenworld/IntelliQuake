@@ -117,6 +117,7 @@ export class PlatformFoundationStack extends Stack {
           beforeInstall: () => [],
           afterBundling: (_inputDirectory, outputDirectory) => [
             `cp "${path.join(projectRoot, 'database', 'migrations', '001_ingestion_schema.sql')}" "${outputDirectory}/001_ingestion_schema.sql"`,
+            `cp "${path.join(projectRoot, 'database', 'migrations', '002_candidate_series.sql')}" "${outputDirectory}/002_candidate_series.sql"`,
           ],
         },
       },
@@ -129,7 +130,7 @@ export class PlatformFoundationStack extends Stack {
     });
     const migration = new CustomResource(this, 'DatabaseMigration', {
       serviceToken: migrationProvider.serviceToken,
-      properties: { schemaVersion: '001' },
+      properties: { schemaVersion: '002' },
     });
     migration.node.addDependency(database);
 
@@ -167,10 +168,42 @@ export class PlatformFoundationStack extends Stack {
       }),
     );
 
+    const classifyFunction = new NodejsFunction(this, 'CandidateSeriesFunction', {
+      ...commonFunctionProps,
+      entry: ingestionEntry('classify.ts'),
+      handler: 'handler',
+      logGroup: createLogGroup('CandidateSeriesLogGroup'),
+      vpc,
+      vpcSubnets: { subnetType: SubnetType.PRIVATE_WITH_EGRESS },
+      environment: {
+        ...functionEnvironment,
+        CLASSIFICATION_ANALYSIS_HOURS: '168',
+        SERIES_BASE_TIME_WINDOW_HOURS: '24',
+        SERIES_BASE_DISTANCE_KM: '60',
+        SERIES_MAGNITUDE_REFERENCE: '4',
+        SERIES_MAGNITUDE_WINDOW_SCALE: '0.5',
+        SERIES_TIME_WEIGHT: '0.4',
+        SERIES_DISTANCE_WEIGHT: '0.4',
+        SERIES_MAGNITUDE_WEIGHT: '0.2',
+        SERIES_MINIMUM_EDGE_SCORE: '0.45',
+        SERIES_MINIMUM_SIZE: '2',
+      },
+      timeout: Duration.minutes(5),
+      memorySize: 1_024,
+    });
+    database.secret.grantRead(classifyFunction);
+    database.connections.allowDefaultPortFrom(classifyFunction);
+
     const pollSchedule = new Rule(this, 'UsgsPollSchedule', {
       schedule: Schedule.rate(Duration.minutes(5)),
       targets: [new LambdaFunction(pollFunction, { retryAttempts: 2 })],
     });
     pollSchedule.node.addDependency(migration);
+
+    const classificationSchedule = new Rule(this, 'CandidateSeriesSchedule', {
+      schedule: Schedule.rate(Duration.minutes(15)),
+      targets: [new LambdaFunction(classifyFunction, { retryAttempts: 1 })],
+    });
+    classificationSchedule.node.addDependency(migration);
   }
 }

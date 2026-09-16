@@ -1,12 +1,22 @@
 import { applySnapshot, flow, types, type Instance, type SnapshotIn } from 'mobx-state-tree';
 
-import type { EventDetail, EventSummary } from '@earthquake/domain';
+import type {
+  ClassificationRun,
+  EventDetail,
+  EventSummary,
+  SeriesDetail,
+  SeriesSummary,
+} from '@earthquake/domain';
 
 import {
   fetchEventDetail,
   fetchEventPage,
+  fetchSeriesDetail,
+  fetchSeriesPage,
   type EventDetailFetcher,
   type EventPageFetcher,
+  type SeriesDetailFetcher,
+  type SeriesPageFetcher,
 } from './api';
 
 export const EventModel = types.model('Event', {
@@ -35,6 +45,12 @@ export const ExplorerStoreModel = types
     events: types.array(EventModel),
     selectedEventId: types.maybeNull(types.string),
     selectedEventDetail: types.maybeNull(types.frozen<EventDetail>()),
+    series: types.array(types.frozen<SeriesSummary>()),
+    selectedSeriesId: types.maybeNull(types.string),
+    selectedSeriesDetail: types.maybeNull(types.frozen<SeriesDetail>()),
+    classificationRun: types.maybeNull(types.frozen<ClassificationRun>()),
+    seriesStatus: types.optional(types.enumeration(['idle', 'loading', 'ready', 'error']), 'idle'),
+    seriesErrorMessage: types.maybeNull(types.string),
     nextCursor: types.maybeNull(types.string),
     status: types.optional(
       types.enumeration(['idle', 'loading', 'ready', 'degraded', 'error']),
@@ -49,6 +65,12 @@ export const ExplorerStoreModel = types
     get selectedEvent(): Instance<typeof EventModel> | undefined {
       return self.events.find((event) => event.id === self.selectedEventId);
     },
+    get selectedSeries(): SeriesSummary | undefined {
+      return self.series.find((series) => series.id === self.selectedSeriesId);
+    },
+    get selectedSeriesMemberIds(): string[] {
+      return self.selectedSeriesDetail?.memberships.map((membership) => membership.event.id) ?? [];
+    },
     get urlSearch(): string {
       const params = new URLSearchParams();
       if (self.minimumMagnitude !== 2.5) params.set('minMagnitude', String(self.minimumMagnitude));
@@ -56,6 +78,7 @@ export const ExplorerStoreModel = types
       if (self.startTime) params.set('start', self.startTime);
       if (self.endTime) params.set('end', self.endTime);
       if (self.selectedEventId) params.set('event', self.selectedEventId);
+      if (self.selectedSeriesId) params.set('series', self.selectedSeriesId);
       const value = params.toString();
       return value ? `?${value}` : '';
     },
@@ -73,6 +96,7 @@ export const ExplorerStoreModel = types
           maximumMagnitude: self.maximumMagnitude ?? undefined,
           startTime: optionalIso(self.startTime),
           endTime: optionalIso(self.endTime),
+          seriesId: self.selectedSeriesId ?? undefined,
           limit: 250,
         });
         const snapshots: SnapshotIn<typeof EventModel>[] = response.events.map((event) => ({
@@ -110,6 +134,42 @@ export const ExplorerStoreModel = types
       }
     });
 
+    const loadSeries = flow(function* loadSeries(
+      fetcher: SeriesPageFetcher = fetchSeriesPage,
+    ): Generator<Promise<SeriesSearchResult>, void, SeriesSearchResult> {
+      self.seriesStatus = 'loading';
+      self.seriesErrorMessage = null;
+      try {
+        const response = yield fetcher({ limit: 25 });
+        applySnapshot(self.series, response.series);
+        self.classificationRun = response.classificationRun;
+        self.seriesStatus = 'ready';
+      } catch (error) {
+        self.seriesStatus = 'error';
+        self.seriesErrorMessage =
+          error instanceof Error ? error.message : 'Unable to load candidate series';
+      }
+    });
+
+    const loadSelectedSeries = flow(function* loadSelectedSeries(
+      fetcher: SeriesDetailFetcher = fetchSeriesDetail,
+    ): Generator<Promise<SeriesDetailResult>, void, SeriesDetailResult> {
+      if (!self.selectedSeriesId) {
+        self.selectedSeriesDetail = null;
+        return;
+      }
+      try {
+        const response = yield fetcher(self.selectedSeriesId);
+        if (response.series.id === self.selectedSeriesId) {
+          self.selectedSeriesDetail = response.series;
+        }
+      } catch (error) {
+        self.selectedSeriesDetail = null;
+        self.seriesErrorMessage =
+          error instanceof Error ? error.message : 'Unable to load candidate series details';
+      }
+    });
+
     return {
       setMinimumMagnitude(value: number): void {
         self.minimumMagnitude = value;
@@ -127,6 +187,12 @@ export const ExplorerStoreModel = types
         self.selectedEventId = id;
         self.selectedEventDetail = null;
       },
+      selectSeries(id: string | null): void {
+        self.selectedSeriesId = id;
+        self.selectedSeriesDetail = null;
+        self.selectedEventId = null;
+        self.selectedEventDetail = null;
+      },
       togglePlayback(): void {
         self.isPlaying = !self.isPlaying;
       },
@@ -134,8 +200,10 @@ export const ExplorerStoreModel = types
         self.isPlaying = false;
       },
       advancePlayback(): void {
-        if (self.events.length === 0) return;
-        const chronological = [...self.events].reverse();
+        const chronological = self.selectedSeriesDetail
+          ? self.selectedSeriesDetail.memberships.map((membership) => membership.event)
+          : [...self.events].reverse();
+        if (chronological.length === 0) return;
         const index = chronological.findIndex((event) => event.id === self.selectedEventId);
         self.selectedEventId = chronological[(index + 1) % chronological.length]!.id;
         self.selectedEventDetail = null;
@@ -151,18 +219,24 @@ export const ExplorerStoreModel = types
         self.startTime = params.get('start') ?? '';
         self.endTime = params.get('end') ?? '';
         self.selectedEventId = params.get('event');
+        self.selectedSeriesId = params.get('series');
         self.selectedEventDetail = null;
+        self.selectedSeriesDetail = null;
       },
       setMapDegraded(message: string): void {
         self.mapMessage = message;
       },
       loadEvents,
       loadSelectedEvent,
+      loadSeries,
+      loadSelectedSeries,
     };
   });
 
 type EventSearchResult = Awaited<ReturnType<EventPageFetcher>>;
 type EventDetailResult = Awaited<ReturnType<EventDetailFetcher>>;
+type SeriesSearchResult = Awaited<ReturnType<SeriesPageFetcher>>;
+type SeriesDetailResult = Awaited<ReturnType<SeriesDetailFetcher>>;
 
 export type ExplorerStore = Instance<typeof ExplorerStoreModel>;
 export const explorerStore = ExplorerStoreModel.create();

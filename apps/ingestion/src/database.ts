@@ -17,6 +17,12 @@ export function getDatabasePool(): Promise<Pool> {
   return poolPromise;
 }
 
+export async function closeDatabasePool(): Promise<void> {
+  const current = poolPromise;
+  poolPromise = undefined;
+  if (current) await (await current).end();
+}
+
 async function createDatabasePool(): Promise<Pool> {
   let connectionString = process.env.DATABASE_URL;
   if (!connectionString) {

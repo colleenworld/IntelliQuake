@@ -22,6 +22,7 @@
     "db:logs": "docker compose logs -f postgres",
     "db:migrate": "pnpm --filter @earthquake/ingestion migrate",
     "infra:synth": "pnpm --filter @earthquake/infrastructure synth",
+    "series:classify": "pnpm --filter @earthquake/ingestion classify",
     "ingest:backfill": "pnpm --filter @earthquake/ingestion backfill",
     "ingest:poll": "pnpm --filter @earthquake/ingestion poll"
   },

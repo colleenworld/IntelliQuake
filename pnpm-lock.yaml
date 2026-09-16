@@ -59,6 +59,9 @@ importers:
       rxjs:
         specifier: ^7.8.2
         version: 7.8.2
+      zod:
+        specifier: ^4.5.4
+        version: 4.5.4
     devDependencies:
       '@types/pg':
         specifier: ^8.15.5
@@ -124,6 +127,9 @@ importers:
       '@aws-sdk/client-sqs':
         specifier: ^3.883.0
         version: 3.1131.0
+      '@earthquake/classification':
+        specifier: workspace:*
+        version: link:../../packages/classification
       '@earthquake/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
@@ -168,6 +174,19 @@ importers:
       esbuild:
         specifier: ^0.28.2
         version: 0.28.2
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@24.13.3)(supports-color@7.2.0)(tsx@4.23.12)
+
+  packages/classification:
+    dependencies:
+      '@earthquake/domain':
+        specifier: workspace:*
+        version: link:../domain
+      zod:
+        specifier: ^4.1.5
+        version: 4.5.4
+    devDependencies:
       vitest:
         specifier: ^3.2.4
         version: 3.2.7(@types/node@24.13.3)(supports-color@7.2.0)(tsx@4.23.12)

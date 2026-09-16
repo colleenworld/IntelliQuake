@@ -13,10 +13,17 @@ const formatTime = (value: string) =>
 const magnitude = (event: { magnitude: number | null }) =>
   event.magnitude === null ? 'Unrated' : `M ${event.magnitude.toFixed(1)}`;
 
+const roleLabel = (role: string) => role.replaceAll('_', ' ');
+
+const duration = (seconds: number) => {
+  if (seconds < 3_600) return `${Math.round(seconds / 60)} min`;
+  return `${(seconds / 3_600).toFixed(1)} hr`;
+};
+
 export const App = observer(function App() {
   useEffect(() => {
     explorerStore.applyUrl(window.location.search);
-    void explorerStore.loadEvents();
+    void explorerStore.loadSeries();
 
     const dispose = reaction(
       () => explorerStore.urlSearch,
@@ -34,6 +41,11 @@ export const App = observer(function App() {
   }, []);
 
   useEffect(() => {
+    void explorerStore.loadSelectedSeries();
+    void explorerStore.loadEvents();
+  }, [explorerStore.selectedSeriesId]);
+
+  useEffect(() => {
     if (explorerStore.selectedEventId) void explorerStore.loadSelectedEvent();
   }, [explorerStore.selectedEventId]);
 
@@ -45,6 +57,26 @@ export const App = observer(function App() {
 
   const selectedDetail = explorerStore.selectedEventDetail;
   const selected = selectedDetail ?? explorerStore.selectedEvent;
+  const selectedSeriesDetail = explorerStore.selectedSeriesDetail;
+  const seriesMemberIds = explorerStore.selectedSeriesMemberIds;
+  const mapEvents: Array<{
+    id: string;
+    coordinates: { latitude: number; longitude: number };
+    magnitude: number | null;
+    place: string | null;
+  }> = explorerStore.events.map((event) => event);
+  for (const membership of selectedSeriesDetail?.memberships ?? []) {
+    if (!mapEvents.some((event) => event.id === membership.event.id)) {
+      mapEvents.push(membership.event);
+    }
+  }
+  const timelineEvents = selectedSeriesDetail
+    ? selectedSeriesDetail.memberships.map((membership) => membership.event)
+    : explorerStore.events;
+  const roleByEventId = new Map<string, string>(
+    selectedSeriesDetail?.memberships.map((membership) => [membership.event.id, membership.role]) ??
+      [],
+  );
 
   return (
     <main>
@@ -68,6 +100,59 @@ export const App = observer(function App() {
           {explorerStore.errorMessage ?? explorerStore.mapMessage}
         </section>
       )}
+
+      <section className="series-panel" aria-labelledby="series-title">
+        <div className="series-heading">
+          <div>
+            <p className="panel-label">Inferred relationships · not a scientific determination</p>
+            <h2 id="series-title">Candidate seismic series</h2>
+          </div>
+          {explorerStore.classificationRun && (
+            <span className="run-chip">
+              Algorithm {explorerStore.classificationRun.algorithmVersion} · watermark{' '}
+              {formatTime(explorerStore.classificationRun.catalogWatermark)}
+            </span>
+          )}
+        </div>
+        {explorerStore.seriesErrorMessage ? (
+          <p className="series-message">{explorerStore.seriesErrorMessage}</p>
+        ) : explorerStore.seriesStatus === 'loading' ? (
+          <p className="series-message">Loading candidate series…</p>
+        ) : explorerStore.series.length === 0 ? (
+          <p className="series-message">
+            No candidate series are available from the latest classification run.
+          </p>
+        ) : (
+          <div className="series-list">
+            <button
+              type="button"
+              className={explorerStore.selectedSeriesId === null ? 'series-card--selected' : ''}
+              onClick={() => explorerStore.selectSeries(null)}
+            >
+              <strong>All events</strong>
+              <small>Clear series highlight</small>
+            </button>
+            {explorerStore.series.map((series) => (
+              <button
+                type="button"
+                key={series.id}
+                className={
+                  series.id === explorerStore.selectedSeriesId ? 'series-card--selected' : ''
+                }
+                onClick={() => explorerStore.selectSeries(series.id)}
+              >
+                <strong>{series.displayName}</strong>
+                <small>
+                  {series.eventCount} events ·{' '}
+                  {series.maximumMagnitude === null
+                    ? 'Unrated'
+                    : `M ${series.maximumMagnitude.toFixed(1)}`}
+                </small>
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
 
       <form
         className="filters"
@@ -128,14 +213,22 @@ export const App = observer(function App() {
       <section className="workspace" aria-label="Earthquake event explorer">
         <div className="map-panel">
           <EventMap
-            events={explorerStore.events}
+            events={mapEvents}
             selectedEventId={explorerStore.selectedEventId}
+            seriesMemberIds={seriesMemberIds}
+            mainshockCandidateEventId={selectedSeriesDetail?.mainshockCandidateEventId ?? null}
             onSelect={(id) => explorerStore.selectEvent(id)}
             onDegraded={(message) => explorerStore.setMapDegraded(message)}
           />
           <div className="map-legend" aria-hidden="true">
             <span className="legend-dot legend-dot--small" /> M2.5
             <span className="legend-dot legend-dot--large" /> M7+
+            {selectedSeriesDetail && (
+              <>
+                <span className="legend-dot legend-dot--member" /> inferred member
+                <span className="legend-dot legend-dot--mainshock" /> mainshock candidate
+              </>
+            )}
           </div>
         </div>
 
@@ -203,6 +296,66 @@ export const App = observer(function App() {
         </aside>
       </section>
 
+      {selectedSeriesDetail && (
+        <section className="series-evidence" aria-labelledby="evidence-title">
+          <div className="series-heading">
+            <div>
+              <p className="panel-label">Classification evidence</p>
+              <h2 id="evidence-title">{selectedSeriesDetail.displayName}</h2>
+            </div>
+            <span className="candidate-label">Candidate / inferred</span>
+          </div>
+          <p className="series-disclaimer">
+            This grouping is a reproducible engineering heuristic. It is not an authoritative
+            seismological classification and does not predict future earthquakes.
+          </p>
+          <dl className="run-facts">
+            <div>
+              <dt>Algorithm</dt>
+              <dd>
+                {selectedSeriesDetail.classificationRun.algorithm} v
+                {selectedSeriesDetail.classificationRun.algorithmVersion}
+              </dd>
+            </div>
+            <div>
+              <dt>Input snapshot</dt>
+              <dd>{formatTime(selectedSeriesDetail.classificationRun.catalogWatermark)}</dd>
+            </div>
+            <div>
+              <dt>Base windows</dt>
+              <dd>
+                {selectedSeriesDetail.classificationRun.parameters.baseTimeWindowHours} hr ·{' '}
+                {selectedSeriesDetail.classificationRun.parameters.baseDistanceKm} km
+              </dd>
+            </div>
+            <div>
+              <dt>Edge threshold</dt>
+              <dd>{selectedSeriesDetail.classificationRun.parameters.minimumEdgeScore}</dd>
+            </div>
+          </dl>
+          <ol className="membership-list">
+            {selectedSeriesDetail.memberships.map((membership) => (
+              <li key={membership.event.id}>
+                <button
+                  type="button"
+                  onClick={() => explorerStore.selectEvent(membership.event.id)}
+                >
+                  <span className={`role-badge role-badge--${membership.role}`}>
+                    {roleLabel(membership.role)}
+                  </span>
+                  <strong>{membership.event.place ?? 'Unnamed event'}</strong>
+                  <small>
+                    Confidence {(membership.confidence * 100).toFixed(0)}% ·{' '}
+                    {membership.explanation.distanceKm.toFixed(1)} km ·{' '}
+                    {duration(membership.explanation.timeDeltaSeconds)} from linked event
+                  </small>
+                </button>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
       <section className="timeline-panel" aria-labelledby="timeline-title">
         <div className="timeline-heading">
           <div>
@@ -213,7 +366,7 @@ export const App = observer(function App() {
             type="button"
             className="playback-button"
             onClick={() => explorerStore.togglePlayback()}
-            disabled={explorerStore.events.length === 0}
+            disabled={timelineEvents.length === 0}
           >
             {explorerStore.isPlaying ? 'Pause animation' : 'Play animation'}
           </button>
@@ -224,14 +377,14 @@ export const App = observer(function App() {
             <strong>Catalog unavailable</strong>
             <span>Check that the API and PostgreSQL are running.</span>
           </div>
-        ) : explorerStore.events.length === 0 && explorerStore.status !== 'loading' ? (
+        ) : timelineEvents.length === 0 && explorerStore.status !== 'loading' ? (
           <div className="empty-state">
             <strong>No matching events</strong>
             <span>Try widening the selected time or magnitude range.</span>
           </div>
         ) : (
           <ol className="timeline">
-            {explorerStore.events.map((event) => (
+            {timelineEvents.map((event) => (
               <li key={event.id}>
                 <button
                   type="button"
@@ -246,6 +399,11 @@ export const App = observer(function App() {
                   <span>
                     <strong>{event.place ?? 'Unnamed event'}</strong>
                     <small>{formatTime(event.originTime)}</small>
+                    {roleByEventId.has(event.id) && (
+                      <small className="timeline-role">
+                        {roleLabel(roleByEventId.get(event.id)!)}
+                      </small>
+                    )}
                   </span>
                   <span className="event-depth">{event.coordinates.depthKm.toFixed(1)} km</span>
                 </button>
