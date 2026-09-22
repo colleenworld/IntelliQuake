@@ -1,6 +1,7 @@
 import { UsgsFeatureCollectionSchema, type UsgsFeatureCollection } from './schema';
 
-const DEFAULT_FEED_URL = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/2.5_day.geojson';
+const DEFAULT_FEED_URL =
+  'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson';
 const DEFAULT_QUERY_URL = 'https://earthquake.usgs.gov/fdsnws/event/1/query';
 const USGS_RESULT_LIMIT = 20_000;
 
