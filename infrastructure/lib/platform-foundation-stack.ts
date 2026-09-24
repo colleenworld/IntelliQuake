@@ -1,6 +1,5 @@
 import path from 'node:path';
-
-import { CustomResource, Duration, RemovalPolicy, Stack, type StackProps } from 'aws-cdk-lib';
+import { Secret as SecretsManagerSecret } from 'aws-cdk-lib/aws-secretsmanager';
 import { InstanceClass, InstanceSize, InstanceType, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { Rule, Schedule } from 'aws-cdk-lib/aws-events';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
@@ -18,6 +17,22 @@ import { BlockPublicAccess, Bucket, BucketEncryption } from 'aws-cdk-lib/aws-s3'
 import { Queue, QueueEncryption } from 'aws-cdk-lib/aws-sqs';
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import type { Construct } from 'constructs';
+import {
+  CustomResource,
+  Duration,
+  RemovalPolicy,
+  Stack,
+  CfnOutput,
+  type StackProps,
+} from 'aws-cdk-lib';
+import {
+  Cluster,
+  ContainerInsights,
+  ContainerImage,
+  LogDrivers,
+  Secret as EcsSecret,
+} from 'aws-cdk-lib/aws-ecs';
+import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
 
 export class PlatformFoundationStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -72,7 +87,11 @@ export class PlatformFoundationStack extends Stack {
       storageEncrypted: true,
     });
     if (!database.secret) throw new Error('RDS database secret was not created');
-
+    const openAiApiKey = SecretsManagerSecret.fromSecretNameV2(
+      this,
+      'OpenAiApiKey',
+      'intelliquake/openai-api-key',
+    );
     const deadLetterQueue = new Queue(this, 'IngestionDeadLetterQueue', {
       encryption: QueueEncryption.SQS_MANAGED,
       retentionPeriod: Duration.days(14),
@@ -205,5 +224,76 @@ export class PlatformFoundationStack extends Stack {
       targets: [new LambdaFunction(classifyFunction, { retryAttempts: 1 })],
     });
     classificationSchedule.node.addDependency(migration);
+
+    const apiLogGroup = createLogGroup('ApiLogGroup');
+
+    const apiCluster = new Cluster(this, 'ApiCluster', {
+      vpc,
+      containerInsightsV2: ContainerInsights.ENABLED,
+    });
+
+    const apiService = new ApplicationLoadBalancedFargateService(this, 'ApiService', {
+      cluster: apiCluster,
+      publicLoadBalancer: true,
+      assignPublicIp: false,
+      desiredCount: 1,
+      cpu: 512,
+      memoryLimitMiB: 1024,
+      listenerPort: 80,
+      taskSubnets: {
+        subnetType: SubnetType.PRIVATE_WITH_EGRESS,
+      },
+      taskImageOptions: {
+        image: ContainerImage.fromAsset(projectRoot, {
+          file: 'apps/api/Dockerfile',
+        }),
+        containerPort: 3000,
+        environment: {
+          NODE_ENV: 'production',
+          API_HOST: '0.0.0.0',
+          API_PORT: '3000',
+          DATABASE_SSL: 'true',
+          DATABASE_POOL_SIZE: '5',
+          DASHBOARD_ORIGIN: '*',
+        },
+        secrets: {
+          PGHOST: EcsSecret.fromSecretsManager(database.secret, 'host'),
+          PGPORT: EcsSecret.fromSecretsManager(database.secret, 'port'),
+          PGUSER: EcsSecret.fromSecretsManager(database.secret, 'username'),
+          PGPASSWORD: EcsSecret.fromSecretsManager(database.secret, 'password'),
+          PGDATABASE: EcsSecret.fromSecretsManager(database.secret, 'dbname'),
+          OPENAI_API_KEY: EcsSecret.fromSecretsManager(openAiApiKey),
+        },
+        logDriver: LogDrivers.awsLogs({
+          logGroup: apiLogGroup,
+          streamPrefix: 'api',
+        }),
+      },
+      circuitBreaker: {
+        rollback: true,
+      },
+      healthCheckGracePeriod: Duration.seconds(60),
+    });
+
+    database.connections.allowDefaultPortFrom(apiService.service);
+
+    apiService.targetGroup.configureHealthCheck({
+      path: '/v1/health',
+      healthyHttpCodes: '200',
+      interval: Duration.seconds(30),
+      timeout: Duration.seconds(5),
+    });
+
+    const apiServiceResource = apiService.service.node.defaultChild;
+
+    if (!apiServiceResource) {
+      throw new Error('ECS service resource was not created');
+    }
+
+    apiServiceResource.node.addDependency(migration);
+
+    new CfnOutput(this, 'ApiUrl', {
+      value: `http://${apiService.loadBalancer.loadBalancerDnsName}`,
+    });
   }
 }

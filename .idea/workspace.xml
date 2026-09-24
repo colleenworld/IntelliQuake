@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="b6ec89bd-71ac-4c31-8717-069b01b97315" name="Changes" comment="Few minor changes">
+      <change afterPath="$PROJECT_DIR$/.dockerignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/git_toolbox_prj.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/prettier.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/api/Dockerfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/earthquake-platform-v1-spec.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/infrastructure/vitest.config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/database.provider.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/api/src/database.provider.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/infrastructure/lib/platform-foundation-stack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/infrastructure/lib/platform-foundation-stack.ts" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CopilotPersistence">
+    <persistenceIdMap>
+      <entry key="_/home/colleen/WebstormProjects/IntelliQuake" value="3JKyMYVdAyQX9jFa3dtoXqMuJFQ" />
+    </persistenceIdMap>
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="199" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="feature/step-5-production-polish" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;colleenworld&quot;
+  }
+}</component>
+  <component name="GitToolBoxStore">
+    <option name="recentBranches">
+      <RecentBranches>
+        <option name="branchesForRepo">
+          <list>
+            <RecentBranchesForRepo>
+              <option name="branches">
+                <list>
+                  <RecentBranch>
+                    <option name="branchName" value="main" />
+                    <option name="lastUsedInstant" value="1790046714" />
+                  </RecentBranch>
+                  <RecentBranch>
+                    <option name="branchName" value="feature/step-5-production-polish" />
+                    <option name="lastUsedInstant" value="1790046701" />
+                  </RecentBranch>
+                </list>
+              </option>
+              <option name="repositoryRootUrl" value="file://$PROJECT_DIR$" />
+            </RecentBranchesForRepo>
+          </list>
+        </option>
+      </RecentBranches>
+    </option>
+  </component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;git@github.com:colleenworld/IntelliQuake.git&quot;,
+    &quot;accountId&quot;: &quot;8dc33c35-1ac6-40c7-842c-dd17af52b119&quot;
+  }
+}</component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="NextEditCompletionFeaturesState">
+    <decayedCancelled>
+      <entry key="MS100" value="1.0007757361586502" />
+      <entry key="MS500" value="1.3593367420544662" />
+      <entry key="S2" value="2.8369762598225945" />
+      <entry key="S5" value="4.70804066462707" />
+      <entry key="S10" value="6.00977023332609" />
+      <entry key="S30" value="7.238869076533262" />
+      <entry key="S60" value="7.605583612802738" />
+      <entry key="M2" value="7.799192512681441" />
+      <entry key="M5" value="7.918795057234737" />
+      <entry key="M10" value="7.9592490001479055" />
+      <entry key="M15" value="7.972799545583229" />
+      <entry key="M30" value="7.986383183390651" />
+      <entry key="H1" value="7.993187438946321" />
+      <entry key="H2" value="7.996607105848203" />
+      <entry key="H4" value="8.016948213144833" />
+      <entry key="D1" value="32.47435706947097" />
+      <entry key="W1" value="192.104255587315" />
+    </decayedCancelled>
+    <decayedSelected>
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="0.0" />
+      <entry key="S2" value="0.0" />
+      <entry key="S5" value="0.0" />
+      <entry key="S10" value="0.0" />
+      <entry key="S30" value="0.0" />
+      <entry key="S60" value="0.0" />
+      <entry key="M2" value="0.0" />
+      <entry key="M5" value="1.5071129383560113E-248" />
+      <entry key="M10" value="1.227645281975218E-124" />
+      <entry key="M15" value="2.4701041542053736E-83" />
+      <entry key="M30" value="4.970014239622833E-42" />
+      <entry key="H1" value="2.2293528746307138E-21" />
+      <entry key="H2" value="4.7216058773772196E-11" />
+      <entry key="H4" value="6.886181965148562E-6" />
+      <entry key="D1" value="0.38700273693091763" />
+      <entry key="W1" value="5.099425809396217" />
+    </decayedSelected>
+    <decayedShown>
+      <entry key="MS100" value="0.9533628630755485" />
+      <entry key="MS500" value="1.233465451122052" />
+      <entry key="S2" value="2.5178499400623173" />
+      <entry key="S5" value="4.490490038555807" />
+      <entry key="S10" value="5.878894286433828" />
+      <entry key="S30" value="7.189397344199653" />
+      <entry key="S60" value="7.580049092036667" />
+      <entry key="M2" value="7.786220093114406" />
+      <entry key="M5" value="7.913556129430729" />
+      <entry key="M10" value="7.956621148651663" />
+      <entry key="M15" value="7.971045776134173" />
+      <entry key="M30" value="7.985505363302175" />
+      <entry key="H1" value="7.992748294847431" />
+      <entry key="H2" value="7.9963874752797075" />
+      <entry key="H4" value="8.01684523784717" />
+      <entry key="D1" value="32.86131379293426" />
+      <entry key="W1" value="197.2036305595257" />
+    </decayedShown>
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 0,
+  &quot;fromUser&quot;: false
+}</component>
+  <component name="ProjectId" id="3JKyMYVdAyQX9jFa3dtoXqMuJFQ" />
+  <component name="ProjectSessionTemplates">
+    <option name="panelTemplate">
+      <template>
+        <option name="modeId" value="Agent" />
+        <option name="model">
+          <model>
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="auto" />
+          </model>
+        </option>
+        <option name="targetType" value="BACKGROUND" />
+      </template>
+    </option>
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "copilot.chat.legacySessionMetadata.migrated": "true",
+    "git-widget-placeholder": "main",
+    "git.auto.fetch.suggestion.counter": "3",
+    "javascript.preferred.runtime.type.id": "node",
+    "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "/home/colleen/WebstormProjects/AI-Testing-Harness",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "prettierjs.PrettierConfiguration.Package": "/home/colleen/WebstormProjects/IntelliQuake/node_modules/prettier",
+    "to.speed.mode.migration.done": "true",
+    "ts.external.directory.path": "/home/colleen/WebstormProjects/IntelliQuake/node_modules/typescript/lib",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="ReactDesignerToolWindowState">
+    <option name="myId2Visible">
+      <map>
+        <entry key="com.intellij.reactbuddy.reactComponents" value="false" />
+        <entry key="com.intellij.reactbuddy.reactInspector" value="false" />
+        <entry key="com.intellij.reactbuddy.storybook" value="false" />
+      </map>
+    </option>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-31caf2ab9e3c-JavaScript-WS-261.25134.101" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="b6ec89bd-71ac-4c31-8717-069b01b97315" name="Changes" comment="" />
+      <created>1789424006948</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1789424006948</updated>
+      <workItem from="1789424008196" duration="5270000" />
+      <workItem from="1789444899605" duration="20550000" />
+      <workItem from="1789965283584" duration="16789000" />
+    </task>
+    <task id="LOCAL-00001" summary="Update to version 0.1.0">
+      <option name="closed" value="true" />
+      <created>1789445870122</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1789445870122</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Update to version 0.1.0">
+      <option name="closed" value="true" />
+      <created>1789453386036</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1789453386036</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Few minor changes">
+      <option name="closed" value="true" />
+      <created>1790036490894</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1790036490894</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Update to version 0.1.0" />
+    <MESSAGE value="Few minor changes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Few minor changes" />
+  </component>
+</project>
