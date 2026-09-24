@@ -33,6 +33,15 @@ import {
   Secret as EcsSecret,
 } from 'aws-cdk-lib/aws-ecs';
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
+import {
+  AllowedMethods,
+  CachePolicy,
+  Distribution,
+  OriginProtocolPolicy,
+  OriginRequestPolicy,
+  ViewerProtocolPolicy,
+} from 'aws-cdk-lib/aws-cloudfront';
+import { LoadBalancerV2Origin, S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 
 export class PlatformFoundationStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -273,6 +282,50 @@ export class PlatformFoundationStack extends Stack {
         rollback: true,
       },
       healthCheckGracePeriod: Duration.seconds(60),
+    });
+
+    const dashboardBucket = new Bucket(this, 'DashboardBucket', {
+      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+      encryption: BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+    });
+
+    const dashboardDistribution = new Distribution(this, 'DashboardDistribution', {
+      defaultRootObject: 'index.html',
+      defaultBehavior: {
+        origin: S3BucketOrigin.withOriginAccessControl(dashboardBucket),
+        viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        cachePolicy: CachePolicy.CACHING_OPTIMIZED,
+        compress: true,
+      },
+      additionalBehaviors: {
+        'v1/*': {
+          origin: new LoadBalancerV2Origin(apiService.loadBalancer, {
+            protocolPolicy: OriginProtocolPolicy.HTTP_ONLY,
+            readTimeout: Duration.seconds(120),
+            keepaliveTimeout: Duration.seconds(60),
+          }),
+          viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          allowedMethods: AllowedMethods.ALLOW_ALL,
+          cachePolicy: CachePolicy.CACHING_DISABLED,
+          originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+          compress: false,
+        },
+      },
+    });
+
+    new CfnOutput(this, 'DashboardBucketName', {
+      value: dashboardBucket.bucketName,
+    });
+
+    new CfnOutput(this, 'DashboardDistributionId', {
+      value: dashboardDistribution.distributionId,
+    });
+
+    new CfnOutput(this, 'DashboardUrl', {
+      value: `https://${dashboardDistribution.distributionDomainName}`,
     });
 
     database.connections.allowDefaultPortFrom(apiService.service);
