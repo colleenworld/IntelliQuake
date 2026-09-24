@@ -14,7 +14,9 @@ import {
   type ChatStreamEvent,
 } from '@earthquake/contracts';
 
-const apiUrl = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+const apiUrl = (
+  import.meta.env.VITE_API_URL ?? (import.meta.env.PROD ? '' : 'http://localhost:3000')
+).replace(/\/$/, '');
 
 async function getJson(path: string): Promise<unknown> {
   const response = await fetch(`${apiUrl}/v1${path}`, { headers: { accept: 'application/json' } });

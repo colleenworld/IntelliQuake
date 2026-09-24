@@ -5,19 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b6ec89bd-71ac-4c31-8717-069b01b97315" name="Changes" comment="Few minor changes">
-      <change afterPath="$PROJECT_DIR$/.dockerignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/git_toolbox_prj.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/prettier.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/apps/api/Dockerfile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/earthquake-platform-v1-spec.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/infrastructure/vitest.config.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/api/src/database.provider.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/api/src/database.provider.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/infrastructure/lib/platform-foundation-stack.ts" beforeDir="false" afterPath="$PROJECT_DIR$/infrastructure/lib/platform-foundation-stack.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/dashboard/src/api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/dashboard/src/api.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -215,7 +203,7 @@
       <updated>1789424006948</updated>
       <workItem from="1789424008196" duration="5270000" />
       <workItem from="1789444899605" duration="20550000" />
-      <workItem from="1789965283584" duration="16789000" />
+      <workItem from="1789965283584" duration="17366000" />
     </task>
     <task id="LOCAL-00001" summary="Update to version 0.1.0">
       <option name="closed" value="true" />
@@ -241,7 +229,15 @@
       <option name="project" value="LOCAL" />
       <updated>1790036490894</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Few minor changes">
+      <option name="closed" value="true" />
+      <created>1790218715030</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1790218715030</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
