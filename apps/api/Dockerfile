@@ -12,29 +12,29 @@ RUN apt-get update \
   && curl --fail --silent --show-error --location \
     https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem \
     --output /opt/rds-certs/global-bundle.pem \
-  && rm -rf /var/lib/apt/lists/* \
+  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /workspace
 
 COPY . .
 
 RUN pnpm install --frozen-lockfile
-RUN pnpm build:packages
-RUN pnpm --filter @earthquake/api build
+
+RUN pnpm build:packages \
+  && pnpm --filter @earthquake/ingestion build \
+  && pnpm --filter @earthquake/api build
 
 FROM node:24-bookworm-slim AS runtime
 
 ENV NODE_ENV=production
 ENV API_HOST=0.0.0.0
 ENV API_PORT=3000
+ENV NODE_EXTRA_CA_CERTS=/opt/rds-certs/global-bundle.pem
 
 WORKDIR /workspace
 
-COPY --from=build --chown=node:node /workspace /workspace
-
 COPY --from=build /opt/rds-certs/global-bundle.pem /opt/rds-certs/global-bundle.pem
-
-ENV NODE_EXTRA_CA_CERTS=/opt/rds-certs/global-bundle.pem
+COPY --from=build --chown=node:node /workspace /workspace
 
 USER node
 

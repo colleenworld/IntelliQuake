@@ -4,8 +4,29 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b6ec89bd-71ac-4c31-8717-069b01b97315" name="Changes" comment="Few minor changes">
-      <change beforePath="$PROJECT_DIR$/apps/dashboard/src/api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/dashboard/src/api.ts" afterDir="false" />
+    <list default="true" id="b6ec89bd-71ac-4c31-8717-069b01b97315" name="Changes" comment="Fix test settings">
+      <change afterPath="$PROJECT_DIR$/.env.production.example" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/dashboard/Caddyfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/dashboard/Dockerfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/dashboard/src/EventDialog.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/apps/ingestion/src/cli/import-kaggle.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/database/migrations/003_kaggle_source.sql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docker-compose-production.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/apps/api/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/events.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/api/src/events.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/api/src/series.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/api/src/series.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/dashboard/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/dashboard/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/dashboard/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/dashboard/src/App.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/dashboard/src/EventMap.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/apps/dashboard/src/EventMap.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/dashboard/src/store.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/dashboard/src/store.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/dashboard/src/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/apps/dashboard/src/styles.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/ingestion/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/apps/ingestion/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/ingestion/src/ports.ts" beforeDir="false" afterPath="$PROJECT_DIR$/apps/ingestion/src/ports.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/contracts/src/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/contracts/src/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/packages/domain/src/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/packages/domain/src/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pnpm-lock.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pnpm-lock.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -71,23 +92,23 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0007757361586502" />
-      <entry key="MS500" value="1.3593367420544662" />
-      <entry key="S2" value="2.8369762598225945" />
-      <entry key="S5" value="4.70804066462707" />
-      <entry key="S10" value="6.00977023332609" />
-      <entry key="S30" value="7.238869076533262" />
-      <entry key="S60" value="7.605583612802738" />
-      <entry key="M2" value="7.799192512681441" />
-      <entry key="M5" value="7.918795057234737" />
-      <entry key="M10" value="7.9592490001479055" />
-      <entry key="M15" value="7.972799545583229" />
-      <entry key="M30" value="7.986383183390651" />
-      <entry key="H1" value="7.993187438946321" />
-      <entry key="H2" value="7.996607105848203" />
-      <entry key="H4" value="8.016948213144833" />
-      <entry key="D1" value="32.47435706947097" />
-      <entry key="W1" value="192.104255587315" />
+      <entry key="MS100" value="1.2398455556418841" />
+      <entry key="MS500" value="2.2044696694225943" />
+      <entry key="S2" value="5.398664353888297" />
+      <entry key="S5" value="7.249363301831389" />
+      <entry key="S10" value="8.06237295260682" />
+      <entry key="S30" value="8.672445860073388" />
+      <entry key="S60" value="8.834881372389416" />
+      <entry key="M2" value="8.95898909884773" />
+      <entry key="M5" value="9.514119918278437" />
+      <entry key="M10" value="10.467685530056167" />
+      <entry key="M15" value="11.580293881331436" />
+      <entry key="M30" value="15.523687018549463" />
+      <entry key="H1" value="21.692157831938346" />
+      <entry key="H2" value="27.7931779827785" />
+      <entry key="H4" value="32.595306014125214" />
+      <entry key="D1" value="65.0022345833535" />
+      <entry key="W1" value="235.43399797694903" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -98,35 +119,38 @@
       <entry key="S30" value="0.0" />
       <entry key="S60" value="0.0" />
       <entry key="M2" value="0.0" />
-      <entry key="M5" value="1.5071129383560113E-248" />
-      <entry key="M10" value="1.227645281975218E-124" />
-      <entry key="M15" value="2.4701041542053736E-83" />
-      <entry key="M30" value="4.970014239622833E-42" />
-      <entry key="H1" value="2.2293528746307138E-21" />
-      <entry key="H2" value="4.7216058773772196E-11" />
-      <entry key="H4" value="6.886181965148562E-6" />
-      <entry key="D1" value="0.38700273693091763" />
-      <entry key="W1" value="5.099425809396217" />
+      <entry key="M5" value="0.0" />
+      <entry key="M10" value="1.284604471437855E-178" />
+      <entry key="M15" value="2.545928989539179E-119" />
+      <entry key="M30" value="5.04571995808247E-60" />
+      <entry key="H1" value="2.2462680067355915E-30" />
+      <entry key="H2" value="1.4987566058272448E-15" />
+      <entry key="H4" value="3.879709277711243E-8" />
+      <entry key="D1" value="0.16324910834718423" />
+      <entry key="W1" value="4.507849304476745" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.9533628630755485" />
-      <entry key="MS500" value="1.233465451122052" />
-      <entry key="S2" value="2.5178499400623173" />
-      <entry key="S5" value="4.490490038555807" />
-      <entry key="S10" value="5.878894286433828" />
-      <entry key="S30" value="7.189397344199653" />
-      <entry key="S60" value="7.580049092036667" />
-      <entry key="M2" value="7.786220093114406" />
-      <entry key="M5" value="7.913556129430729" />
-      <entry key="M10" value="7.956621148651663" />
-      <entry key="M15" value="7.971045776134173" />
-      <entry key="M30" value="7.985505363302175" />
-      <entry key="H1" value="7.992748294847431" />
-      <entry key="H2" value="7.9963874752797075" />
-      <entry key="H4" value="8.01684523784717" />
-      <entry key="D1" value="32.86131379293426" />
-      <entry key="W1" value="197.2036305595257" />
+      <entry key="MS100" value="1.097371515624292" />
+      <entry key="MS500" value="2.1566664001134703" />
+      <entry key="S2" value="5.3754599034217385" />
+      <entry key="S5" value="7.23763358392941" />
+      <entry key="S10" value="8.055978420048994" />
+      <entry key="S30" value="8.670182683164233" />
+      <entry key="S60" value="8.833714841055537" />
+      <entry key="M2" value="8.957811683386245" />
+      <entry key="M5" value="9.510831743735933" />
+      <entry key="M10" value="10.463904072935721" />
+      <entry key="M15" value="11.576830039581095" />
+      <entry key="M30" value="15.521144072917176" />
+      <entry key="H1" value="21.690542649600445" />
+      <entry key="H2" value="27.792250713148288" />
+      <entry key="H4" value="32.5947898703294" />
+      <entry key="D1" value="65.1653061156777" />
+      <entry key="W1" value="239.94177188060544" />
     </decayedShown>
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 0,
@@ -166,13 +190,14 @@
     "git.auto.fetch.suggestion.counter": "3",
     "javascript.preferred.runtime.type.id": "node",
     "junie.onboarding.icon.badge.shown": "true",
-    "last_opened_file_path": "/home/colleen/WebstormProjects/AI-Testing-Harness",
+    "last_opened_file_path": "/home/colleen/WebstormProjects/IntelliQuake",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "prettierjs.PrettierConfiguration.Package": "/home/colleen/WebstormProjects/IntelliQuake/node_modules/prettier",
+    "settings.editor.selected.configurable": "settings.qodana",
     "to.speed.mode.migration.done": "true",
     "ts.external.directory.path": "/home/colleen/WebstormProjects/IntelliQuake/node_modules/typescript/lib",
     "vue.rearranger.settings.migration": "true"
@@ -186,6 +211,13 @@
         <entry key="com.intellij.reactbuddy.storybook" value="false" />
       </map>
     </option>
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/apps/ingestion/src/cli" />
+      <recent name="$PROJECT_DIR$/.local/datasets/kaggle-earthquakes" />
+      <recent name="$PROJECT_DIR$/.local/datasets/kaggle" />
+    </key>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -203,7 +235,8 @@
       <updated>1789424006948</updated>
       <workItem from="1789424008196" duration="5270000" />
       <workItem from="1789444899605" duration="20550000" />
-      <workItem from="1789965283584" duration="17366000" />
+      <workItem from="1789965283584" duration="20834000" />
+      <workItem from="1791907871722" duration="12538000" />
     </task>
     <task id="LOCAL-00001" summary="Update to version 0.1.0">
       <option name="closed" value="true" />
@@ -237,7 +270,23 @@
       <option name="project" value="LOCAL" />
       <updated>1790218715030</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Small update to dashboard">
+      <option name="closed" value="true" />
+      <created>1790219195213</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1790219195213</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Fix test settings">
+      <option name="closed" value="true" />
+      <created>1790219733822</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1790219733822</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -246,6 +295,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Update to version 0.1.0" />
     <MESSAGE value="Few minor changes" />
-    <option name="LAST_COMMIT_MESSAGE" value="Few minor changes" />
+    <MESSAGE value="Small update to dashboard" />
+    <MESSAGE value="Fix test settings" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix test settings" />
   </component>
 </project>

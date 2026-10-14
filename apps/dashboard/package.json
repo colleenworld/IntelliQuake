@@ -13,6 +13,7 @@
   "dependencies": {
     "@earthquake/contracts": "workspace:*",
     "@earthquake/domain": "workspace:*",
+    "lucide-react": "^1.56.0",
     "maplibre-gl": "^6.9.0",
     "mobx": "^6.13.7",
     "mobx-react-lite": "^4.1.0",

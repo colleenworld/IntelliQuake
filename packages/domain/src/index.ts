@@ -108,7 +108,7 @@ export const SeriesDetailSchema = SeriesSummarySchema.extend({
 export type SeriesDetail = z.infer<typeof SeriesDetailSchema>;
 
 export const NormalizedEventSchema = z.object({
-  source: z.literal('usgs'),
+  source: z.enum(['usgs', 'kaggle']),
   sourceEventId: z.string().min(1),
   sourceUpdatedAt: z.iso.datetime({ offset: true }),
   sourceUrl: z.url(),

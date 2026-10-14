@@ -48,8 +48,8 @@ export const EventSearchQuerySchema = z
       west === undefined ||
       north === undefined ||
       east === undefined ||
-      (south < north && west < east),
-    { message: 'map bounds must have south < north and west < east' },
+      (south < north && west !== east),
+    { message: 'map bounds must have south < north and west !== east' },
   );
 
 export const EventSearchResponseSchema = z.object({
@@ -67,6 +67,7 @@ export const SeriesSearchQuerySchema = z.object({
   classificationRunId: z.uuid().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(25),
   cursor: z.string().optional(),
+  eventId: z.uuid().optional(),
 });
 export type SeriesSearchQuery = z.infer<typeof SeriesSearchQuerySchema>;
 

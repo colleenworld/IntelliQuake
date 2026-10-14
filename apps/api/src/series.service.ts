@@ -166,6 +166,15 @@ export class SeriesService {
       values.push(cursor.startTime, cursor.id);
       cursorClause = 'AND (start_time, id) < ($2::timestamptz, $3::uuid)';
     }
+    let eventClause = '';
+
+    if (query.eventId) {
+      values.push(query.eventId);
+      eventClause = `AND EXISTS (SELECT 1 FROM series_memberships membership
+      WHERE membership.series_id = seismic_series.id
+      AND membership.canonical_event_id = $${values.length}::uuid
+  )`;
+    }
     values.push(query.limit + 1);
     const result = await this.database.query<SeriesRow>(
       `SELECT id, classification_run_id, mainshock_candidate_event_id,
@@ -174,7 +183,7 @@ export class SeriesService {
               ST_X(centroid::geometry) AS longitude,
               display_name
        FROM seismic_series
-       WHERE classification_run_id = $1::uuid ${cursorClause}
+       WHERE classification_run_id = $1::uuid ${cursorClause} ${eventClause}
        ORDER BY start_time DESC, id DESC
        LIMIT $${values.length}::integer`,
       values,

@@ -22,6 +22,7 @@
     "@earthquake/contracts": "workspace:*",
     "@earthquake/domain": "workspace:*",
     "@earthquake/observability": "workspace:*",
+    "csv-parse": "^7.0.3",
     "pg": "^8.16.3",
     "zod": "^4.1.5"
   },

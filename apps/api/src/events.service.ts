@@ -126,13 +126,36 @@ export class EventsService {
       query.north !== undefined &&
       query.east !== undefined
     ) {
-      const west = add(query.west);
       const south = add(query.south);
-      const east = add(query.east);
       const north = add(query.north);
-      where.push(
-        `ST_Intersects(ce.location, ST_MakeEnvelope(${west}, ${south}, ${east}, ${north}, 4326)::geography)`,
-      );
+
+      if (query.west === -180 && query.east === 180) {
+        where.push(
+          `ST_Y(ce.location::geometry) BETWEEN ${south}::double precision AND ${north}::double precision`,
+        );
+      } else {
+        const west = add(query.west);
+        const east = add(query.east);
+
+        if (query.west < query.east) {
+          where.push(
+            `ST_Intersects(
+          ce.location::geometry,
+          ST_MakeEnvelope(${west}, ${south}, ${east}, ${north}, 4326)
+        )`,
+          );
+        } else {
+          where.push(
+            `(ST_Intersects(
+            ce.location::geometry,
+            ST_MakeEnvelope(${west}, ${south}, 180, ${north}, 4326)
+          ) OR ST_Intersects(
+            ce.location::geometry,
+            ST_MakeEnvelope(-180, ${south}, ${east}, ${north}, 4326)
+          ))`,
+          );
+        }
+      }
     }
     if (query.cursor) {
       const cursor = decodeCursor(query.cursor);

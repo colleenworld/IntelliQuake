@@ -1,4 +1,6 @@
 import { applySnapshot, flow, types, type Instance, type SnapshotIn } from 'mobx-state-tree';
+import type { MapBounds } from './EventMap';
+import { buildReplay, revealedCount, replayClock } from './replay';
 
 import type {
   ClassificationRun,
@@ -69,6 +71,10 @@ export const ExplorerStoreModel = types
     errorMessage: types.maybeNull(types.string),
     mapMessage: types.maybeNull(types.string),
     isPlaying: types.optional(types.boolean, false),
+    replayActive: types.optional(types.boolean, false),
+    replayPosition: types.optional(types.number, 0),
+    replaySpeed: types.optional(types.number, 1),
+    replayGeneration: types.optional(types.number, 0),
     lastUpdatedAt: types.maybeNull(types.string),
     chatDraft: types.optional(types.string, ''),
     chatMessages: types.array(ChatMessageModel),
@@ -78,17 +84,21 @@ export const ExplorerStoreModel = types
     ),
     chatTool: types.maybeNull(types.string),
     chatErrorMessage: types.maybeNull(types.string),
+    mapBounds: types.maybeNull(types.frozen<MapBounds>()),
   })
   .views((self) => ({
+    get replaySchedule() {
+      return buildReplay<Instance<typeof EventModel>>([...self.events]);
+    },
     get selectedEvent(): Instance<typeof EventModel> | undefined {
       return self.events.find((event) => event.id === self.selectedEventId);
     },
     get selectedSeries(): SeriesSummary | undefined {
       return self.series.find((series) => series.id === self.selectedSeriesId);
     },
-    get selectedSeriesMemberIds(): string[] {
+    /*get selectedSeriesMemberIds(): string[] {
       return self.selectedSeriesDetail?.memberships.map((membership) => membership.event.id) ?? [];
-    },
+    },*/
     get urlSearch(): string {
       const params = new URLSearchParams();
       if (self.minimumMagnitude !== 2.5) params.set('minMagnitude', String(self.minimumMagnitude));
@@ -101,42 +111,104 @@ export const ExplorerStoreModel = types
       return value ? `?${value}` : '';
     },
   }))
+  .views((self) => ({
+    get replayDuration(): number {
+      return self.replaySchedule.at(-1)?.at ?? 0;
+    },
+    get replayEvents() {
+      const entries = self.replaySchedule;
+      const count = self.replayActive
+        ? revealedCount(entries, self.replayPosition)
+        : entries.length;
+      return entries.slice(0, count).map((entry) => entry.event);
+    },
+    get replayTime(): string | null {
+      return self.replayActive
+        ? replayClock(self.replaySchedule, self.replayPosition)
+        : (self.replaySchedule.at(-1)?.event.originTime ?? null);
+    },
+  }))
   .actions((self) => {
+    let eventRequestVersion = 0;
     const loadEvents = flow(function* loadEvents(
       fetcher: EventPageFetcher = fetchEventPage,
     ): Generator<Promise<EventSearchResult>, void, EventSearchResult> {
+      const requestVersion = ++eventRequestVersion;
       const previousCount = self.events.length;
+
+      const query = {
+        minimumMagnitude: self.minimumMagnitude,
+        maximumMagnitude: self.maximumMagnitude ?? undefined,
+        startTime: optionalIso(self.startTime),
+        endTime: optionalIso(self.endTime),
+        seriesId: self.selectedSeriesId ?? undefined,
+        ...(self.mapBounds ?? {}),
+        limit: 500,
+      };
+
       self.status = 'loading';
       self.errorMessage = null;
+      self.isPlaying = false;
+
       try {
-        const response = yield fetcher({
-          minimumMagnitude: self.minimumMagnitude,
-          maximumMagnitude: self.maximumMagnitude ?? undefined,
-          startTime: optionalIso(self.startTime),
-          endTime: optionalIso(self.endTime),
-          seriesId: self.selectedSeriesId ?? undefined,
-          limit: 250,
-        });
-        const snapshots: SnapshotIn<typeof EventModel>[] = response.events.map((event) => ({
-          id: event.id,
-          originTime: event.originTime,
-          coordinates: event.coordinates,
-          magnitude: event.magnitude,
-          magnitudeType: event.magnitudeType,
-          place: event.place,
-          source: event.source,
-          sourceEventId: event.sourceEventId,
-        }));
+        const snapshots: SnapshotIn<typeof EventModel>[] = [];
+        const seenIds = new Set<string>();
+        const seenCursors = new Set<string>();
+        let cursor: string | undefined;
+
+        while (true) {
+          const response = yield fetcher({ ...query, cursor });
+
+          // A newer viewport or filter query has superseded this request.
+          if (requestVersion !== eventRequestVersion) return;
+
+          for (const event of response.events) {
+            if (seenIds.has(event.id)) continue;
+            seenIds.add(event.id);
+            snapshots.push({
+              id: event.id,
+              originTime: event.originTime,
+              coordinates: event.coordinates,
+              magnitude: event.magnitude,
+              magnitudeType: event.magnitudeType,
+              place: event.place,
+              source: event.source,
+              sourceEventId: event.sourceEventId,
+            });
+          }
+
+          cursor = response.nextCursor ?? undefined;
+
+          if (!cursor || snapshots.length >= 5000) break;
+
+          if (seenCursors.has(cursor)) {
+            throw new Error('The event API returned a repeated pagination cursor');
+          }
+          seenCursors.add(cursor);
+        }
+
         applySnapshot(self.events, snapshots);
-        self.nextCursor = response.nextCursor;
+        self.replayActive = false;
+        self.replayPosition = 0;
+        self.replayGeneration += 1;
+        self.nextCursor = cursor ?? null;
+
+        if (
+          self.selectedEventId &&
+          !self.events.some((event) => event.id === self.selectedEventId)
+        ) {
+          self.selectedEventId = null;
+          self.selectedEventDetail = null;
+        }
+
         self.lastUpdatedAt = new Date().toISOString();
         self.status = 'ready';
       } catch (error) {
+        if (requestVersion !== eventRequestVersion) return;
         self.status = previousCount > 0 ? 'degraded' : 'error';
         self.errorMessage = error instanceof Error ? error.message : 'Unable to load events';
       }
     });
-
     const loadSelectedEvent = flow(function* loadSelectedEvent(
       fetcher: EventDetailFetcher = fetchEventDetail,
     ): Generator<Promise<EventDetailResult>, void, EventDetailResult> {
@@ -254,6 +326,22 @@ export const ExplorerStoreModel = types
     });
 
     return {
+      setMapBounds(bounds: MapBounds): boolean {
+        const previous = self.mapBounds;
+
+        if (
+          previous &&
+          previous.south === bounds.south &&
+          previous.west === bounds.west &&
+          previous.north === bounds.north &&
+          previous.east === bounds.east
+        ) {
+          return false;
+        }
+
+        self.mapBounds = bounds;
+        return true;
+      },
       setMinimumMagnitude(value: number): void {
         self.minimumMagnitude = value;
       },
@@ -277,20 +365,53 @@ export const ExplorerStoreModel = types
         self.selectedEventDetail = null;
       },
       togglePlayback(): void {
-        self.isPlaying = !self.isPlaying;
+        if (self.isPlaying) {
+          self.isPlaying = false;
+          return;
+        }
+        if (self.status === 'loading' || self.status === 'error' || self.events.length === 0)
+          return;
+        if (!self.replayActive || self.replayPosition >= self.replayDuration) {
+          self.replayPosition = 0;
+          self.replayGeneration += 1;
+        }
+        self.replayActive = true;
+        self.isPlaying = self.replayDuration > 0;
       },
       pausePlayback(): void {
         self.isPlaying = false;
       },
-      advancePlayback(): void {
-        const chronological = self.selectedSeriesDetail
-          ? self.selectedSeriesDetail.memberships.map((membership) => membership.event)
-          : [...self.events].reverse();
-        if (chronological.length === 0) return;
-        const index = chronological.findIndex((event) => event.id === self.selectedEventId);
-        self.selectedEventId = chronological[(index + 1) % chronological.length]!.id;
-        self.selectedEventDetail = null;
+      advancePlayback(elapsedMs = 50): void {
+        if (!self.isPlaying || !Number.isFinite(elapsedMs) || elapsedMs <= 0) return;
+        self.replayPosition = Math.min(
+          self.replayDuration,
+          self.replayPosition + Math.min(elapsedMs, 250) * self.replaySpeed,
+        );
+        if (self.replayPosition >= self.replayDuration) self.isPlaying = false;
       },
+      setReplaySpeed(speed: number): void {
+        if ([0.25, 0.5, 1, 2, 4, 8].includes(speed)) self.replaySpeed = speed;
+      },
+      seekReplay(position: number): void {
+        if (!Number.isFinite(position)) return;
+        self.isPlaying = false;
+        self.replayActive = true;
+        self.replayPosition = Math.max(0, Math.min(self.replayDuration, position));
+        self.replayGeneration += 1;
+      },
+      restartReplay(): void {
+        self.isPlaying = false;
+        self.replayActive = true;
+        self.replayPosition = 0;
+        self.replayGeneration += 1;
+      },
+      finishReplay(): void {
+        self.isPlaying = false;
+        self.replayActive = true;
+        self.replayPosition = self.replayDuration;
+        self.replayGeneration += 1;
+      },
+
       applyUrl(search: string): void {
         const params = new URLSearchParams(search);
         const minimum = Number(params.get('minMagnitude'));

@@ -25,7 +25,7 @@ export interface EventMessageQueue {
 
 export interface IngestionRunInput {
   id: string;
-  source: 'usgs';
+  source: 'usgs' | 'kaggle';
   mode: IngestionMode;
   requestedStart?: string;
   requestedEnd?: string;
